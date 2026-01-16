@@ -39,3 +39,11 @@
 
 # debug information files
 *.dwo
+
+# Other
+*.err
+*.gv
+*.hdr
+*.idx
+*.log
+*.txt
