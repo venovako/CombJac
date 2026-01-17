@@ -174,22 +174,31 @@ static void make_in_strat()
   gv_filename << "rowset_" << N << ".gv";
   std::ofstream gv(gv_filename.str(), (std::ios::out | std::ios::trunc));
   gv << "strict graph rowset {" << std::endl << "\tmargin=0" << std::endl;
-#ifdef GRAPHVIZ_SIZE
+#ifndef GRAPHVIZ_SIZE
+#define GRAPHVIZ_SIZE 4.25
+#endif /* !GRAPHVIZ_SIZE */
   gv << "\tsize=" << GRAPHVIZ_SIZE << std::endl;
-#else /* !GRAPHVIZ_SIZE */
-  // TODO: gv << "\toverlap=scale" << std::endl;
-#endif /* ?GRAPHVIZ_SIZE */
-  gv << "\tnode [fontsize=48]" << std::endl; //<< "\tedge [color=gray]" << std::endl
+#ifndef GRAPHVIZ_FONTSIZE
+#define GRAPHVIZ_FONTSIZE 48
+#endif /* !GRAPHVIZ_FONTSIZE */
+  gv << "\tnode [fontsize=" << GRAPHVIZ_FONTSIZE << ']' << std::endl;
+#ifndef GRAPHVIZ_EDGECOLOR
+#define GRAPHVIZ_EDGECOLOR "dimgray"
+#endif /* !GRAPHVIZ_EDGECOLOR */
+  gv << "\tedge [color=" << GRAPHVIZ_EDGECOLOR << ']' << std::endl;
   gv << "\t{" << std::endl;
+#ifndef GRAPHVIZ_IXBASE
+#define GRAPHVIZ_IXBASE (ushort)1u
+#endif /* !GRAPHVIZ_IXBASE */
   for (ushort j = 0u; j < i; ++j) {
     pivot &pvt = in_strat[j];
-    gv << "\t\t" << j << " [label=\"" << j << "=(" << ushort(pvt.r) << ',' << ushort(pvt.c) << ")\"]" << std::endl;
+    gv << "\t\t" << (j + GRAPHVIZ_IXBASE) << " [label=\"" << (j + GRAPHVIZ_IXBASE) << "=(" << (pvt.r + GRAPHVIZ_IXBASE)  << ',' << (pvt.c + GRAPHVIZ_IXBASE) << ")\"]" << std::endl;
   }
   gv << "\t}" << std::endl;
   for (ushort j = 0u; j < i; ++j)
     for (ushort k = (j + 1u); k < i; ++k)
       if ((in_strat[j].r == in_strat[k].r) || (in_strat[j].r == in_strat[k].c) || (in_strat[j].c == in_strat[k].r) || (in_strat[j].c == in_strat[k].c))
-        gv << "\t" << j << " -- " << k << std::endl;
+        gv << "\t" << (j + GRAPHVIZ_IXBASE) << " -- " << (k + GRAPHVIZ_IXBASE) << std::endl;
   gv << "}" << std::endl;
   gv.close();
 #ifndef NDEBUG
