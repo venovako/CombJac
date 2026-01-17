@@ -173,13 +173,13 @@ static void make_in_strat()
   std::ostringstream gv_filename;
   gv_filename << "rowset_" << N << ".gv";
   std::ofstream gv(gv_filename.str(), (std::ios::out | std::ios::trunc));
-  gv << "strict graph rowset {" << std::endl;
+  gv << "strict graph rowset {" << std::endl << "\tmargin=0" << std::endl;
 #ifdef GRAPHVIZ_SIZE
   gv << "\tsize=" << GRAPHVIZ_SIZE << std::endl;
 #else /* !GRAPHVIZ_SIZE */
   // TODO: gv << "\toverlap=scale" << std::endl;
 #endif /* ?GRAPHVIZ_SIZE */
-  gv << "\tedge [color=gray]" << std::endl;
+  gv << "\tnode [fontsize=48]" << std::endl; //<< "\tedge [color=gray]" << std::endl
   gv << "\t{" << std::endl;
   for (ushort j = 0u; j < i; ++j) {
     pivot &pvt = in_strat[j];
@@ -237,10 +237,10 @@ static void make_in_strat()
   txt_filename << "rowset_" << N << ".txt";
   std::ofstream txt(txt_filename.str(), (std::ios::out | std::ios::trunc));
   for (i = 0u; i < E_1; ++i) {
-    txt << std::setw(maxw) << i << "@(" << std::setw(w) << ushort(in_strat[i].r) << ',' << std::setw(w) << ushort(in_strat[i].c) << ")[" << std::setw(maxw) << indep_cnts[i] << "]";
+    txt << std::setw(maxw) << i << "=(" << std::setw(w) << ushort(in_strat[i].r) << ',' << std::setw(w) << ushort(in_strat[i].c) << ")[" << std::setw(maxw) << indep_cnts[i] << "]";
     for (ushort j = 0u; j < indep_cnts[i]; ++j) {
       const ushort k = indep_sets[i][j];
-      txt << ", " << std::setw(maxw) << k << "@(" << std::setw(w) << ushort(in_strat[k].r) << ',' << std::setw(w) << ushort(in_strat[k].c) << ')';
+      txt << ", " << std::setw(maxw) << k << "=(" << std::setw(w) << ushort(in_strat[k].r) << ',' << std::setw(w) << ushort(in_strat[k].c) << ')';
     }
     txt << std::endl;
   }
