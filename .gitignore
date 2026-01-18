@@ -41,6 +41,7 @@
 *.dwo
 
 # Other
+*.asy
 *.err
 *.gv
 *.hdr
