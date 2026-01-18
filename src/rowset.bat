@@ -9,12 +9,10 @@ rowset_14.exe > rowset_14.out 2> rowset_14.err
 rowset_18.exe > rowset_18.out 2> rowset_18.err
 rowset_22.exe > rowset_22.out 2> rowset_22.err
 rowset_26.exe > rowset_26.out 2> rowset_26.err
-REM SLOW
-REM rowset_30.exe > rowset_30.out 2> rowset_30.err
+rowset_30.exe > rowset_30.out 2> rowset_30.err
 rowset_34.exe > rowset_34.out 2> rowset_34.err
 rowset_38.exe > rowset_38.out 2> rowset_38.err
 rowset_42.exe > rowset_42.out 2> rowset_42.err
-REM EXTRA
 rowset_4.exe > rowset_4.out 2> rowset_4.err
 rowset_8.exe > rowset_8.out 2> rowset_8.err
 rowset_12.exe > rowset_12.out 2> rowset_12.err

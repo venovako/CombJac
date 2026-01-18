@@ -639,9 +639,10 @@ int main(int argc, char *argv[])
 
   const auto start0 = std::chrono::high_resolution_clock::now();
   if (!make_in_strat())
-    return EXIT_FAILURE;
+    return 2;
   const auto end0 = std::chrono::high_resolution_clock::now();
-  (void)print_gv();
+  if (!print_gv())
+    return 3;
 
 #ifndef NDEBUG
   std::cerr << "                                 " << std::flush;
@@ -653,11 +654,14 @@ int main(int argc, char *argv[])
   std::cerr << (ok ? " done." : " error!") << std::endl;
 #endif /* !NDEBUG */
   if (!ok)
-    return EXIT_FAILURE;
+    return 4;
 
-  (void)print_hdr();
-  (void)print_idx();
-  (void)print_asy();
+  if (!print_hdr())
+    return 5;
+  if (!print_idx())
+    return 6;
+  if (!print_asy())
+    return 7;
 
 #ifndef NDEBUG
   std::cout << "# of failed attempts = ";
@@ -668,7 +672,7 @@ int main(int argc, char *argv[])
 #else /* !NDEBUG */
   std::cout << " in ";
 #endif /* ?NDEBUG */
-  const auto ms = std::chrono::duration_cast<std::chrono::milliseconds>((end0 - start0) + (end1 - start1)).count();
+  const auto ms = (std::chrono::duration_cast<std::chrono::milliseconds>((end0 - start0) + (end1 - start1))).count();
   std::cout << ms;
 #ifdef NDEBUG
   std::cout << ", " << std::fixed << std::setprecision(9) << (ms ? __builtin_log10l(ldouble(ms) / 1000.0L) : -3.0L);
