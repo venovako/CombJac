@@ -42,6 +42,7 @@
 
 # Other
 *.asy
+*.aux
 *.err
 *.gv
 *.hdr
