@@ -597,7 +597,7 @@ static bool print_asy()
 // use '-DASYMPTOTE_PREFIX=""' if asy is in the PATH, or '-DASYMPTOTE_PREFIX="asymptote_prefix/"' if it is not
 #ifdef ASYMPTOTE_PREFIX
     std::ostringstream asy_call;
-    asy_call << ASYMPTOTE_PREFIX << "asy -v -f pdf -tex pdflatex " << asy_filename.str() << " >> rowset_" << N << ".log 2>&1";
+    asy_call << ASYMPTOTE_PREFIX << "asy -v -nobatchView -f pdf -tex pdflatex " << asy_filename.str() << " >> rowset_" << N << ".log 2>&1";
     if (system(asy_call.str().c_str())) {
 #ifndef NDEBUG
       std::cerr << "error!" << std::endl;

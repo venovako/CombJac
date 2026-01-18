@@ -1,8 +1,7 @@
 FOR /L %%N IN (2,2,8) DO icx.exe /nologo /O3 /QxHost /DN=%%Nu /DNDEBUG /DGRAPHVIZ_PREFIX="""""" /DASYMPTOTE_PREFIX="""""" /DPDFTK_PREFIX="""""" /Ferowset_%%N.exe rowset.cpp /link /RELEASE
 FOR /L %%N IN (10,2,42) DO icx.exe /nologo /O3 /QxHost /DN=%%Nu /DNDEBUG /DASYMPTOTE_PREFIX="""""" /DPDFTK_PREFIX="""""" /Ferowset_%%N.exe rowset.cpp /link /RELEASE
-REM IF EXIST timeit.dat DEL /F timeit.dat
-REM "C:\Program Files (x86)\Windows Resource Kits\Tools\timeit.exe"
-REM FOR /L %%N IN (2,2,42) DO rowset_%%N.exe > rowset_%%N.out 2> rowset_%%N.err
+IF EXIST timeit.dat DEL /F timeit.dat
+REM FOR /L %%N IN (2,2,42) DO "C:\Program Files (x86)\Windows Resource Kits\Tools\timeit.exe" rowset_%%N.exe > rowset_%%N.out 2> rowset_%%N.err
 rowset_2.exe > rowset_2.out 2> rowset_2.err
 rowset_6.exe > rowset_6.out 2> rowset_6.err
 rowset_10.exe > rowset_10.out 2> rowset_10.err
