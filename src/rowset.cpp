@@ -511,7 +511,7 @@ static bool print_asy()
   static const ldouble one = 1.0L;
   static const ldouble one_n = one / ldouble(N);
   static const ldouble one_2n = one / ldouble(2u * N);
-  static const ushort size_pt = N * 30u;
+  static const ushort size_pt = N * 20u;
 
 #ifndef NDEBUG
   std::cerr << "Preparing the Asymptote visualization... " << std::flush;
@@ -519,7 +519,7 @@ static bool print_asy()
 
   // draw images
   ushort i = 0u;
-  for (uchar s = 0u; s < S; ++s) {
+  for (uchar s = 0u; s <= S; ++s) {
     std::ostringstream asy_filename;
     asy_filename << "rowset_" << N << '-' << std::setfill('0') << std::setw(w) << (s + GRAPHVIZ_IXBASE) << std::setfill(' ') << ".asy";
     std::ofstream asy(asy_filename.str(), (std::ios_base::out | std::ios_base::trunc));
@@ -533,7 +533,8 @@ static bool print_asy()
     asy << std::fixed << std::setprecision(17);
 
     // header
-    asy << "usepackage(\"amssymb\");" << std::endl;
+    if (s < S)
+      asy << "texpreamble(\"\\usepackage[fixed]{fontawesome5}\");" << std::endl;
     asy << std::endl;
     asy << "size(" << size_pt << ");" << std::endl;
     asy << std::endl;
@@ -576,21 +577,40 @@ static bool print_asy()
         b_x << ',' << b_y << ")--(" <<
         c_x << ',' << c_y << ")--(" <<
         d_x << ',' << d_y << ")--cycle,mediumgray);" << std::endl;
-      asy << "label(\"\\huge\\boldmath$" << (j + GRAPHVIZ_IXBASE) << "$\",(" << l_x << ',' << l_y << "),white);" << std::endl;
+      asy << "label(\"\\large\\boldmath$" << (j + GRAPHVIZ_IXBASE) << "$\",(" << l_x << ',' << l_y << "),white);" << std::endl;
     }
 
-    // step positions
-    for (uchar j = 0u; j < P; ++j) {
-      const pivot &pvt = in_strat[used_set[i++]];
-      const uchar p = pvt.r;
-      const uchar q = pvt.c;
-      ldouble l_x = __builtin_fmal(one_n, ldouble(q), one_2n);
-      ldouble l_y = one - __builtin_fmal(one_n, ldouble(p), one_2n);
-      asy << std::endl;
-      asy << "label(\"\\huge$\\blacksquare$\",(" << l_x << ',' << l_y << "));" << std::endl;
-      l_x = __builtin_fmal(one_n, ldouble(p), one_2n);
-      l_y = one - __builtin_fmal(one_n, ldouble(q), one_2n);
-      asy << "label(\"\\huge$\\blacksquare$\",(" << l_x << ',' << l_y << "),lightgray);" << std::endl;
+    if (s < S) {
+      // step positions
+      for (uchar j = 0u; j < P; ++j) {
+        const pivot &pvt = in_strat[used_set[i++]];
+        const uchar p = pvt.r;
+        const uchar q = pvt.c;
+        ldouble l_x = __builtin_fmal(one_n, ldouble(q), one_2n);
+        ldouble l_y = one - __builtin_fmal(one_n, ldouble(p), one_2n);
+        asy << std::endl;
+        asy << "label(\"\\faChessRook\",(" << l_x << ',' << l_y << "));" << std::endl;
+        l_x = __builtin_fmal(one_n, ldouble(p), one_2n);
+        l_y = one - __builtin_fmal(one_n, ldouble(q), one_2n);
+        asy << "label(\"\\faChessRook\",(" << l_x << ',' << l_y << "),lightgray);" << std::endl;
+      }
+    }
+    else {
+      i = 0u;
+      for (uchar j = 0u; j < S; ++j) {
+        for (uchar k = 0u; k < P; ++k) {
+          const pivot &pvt = in_strat[used_set[i++]];
+          const uchar p = pvt.r;
+          const uchar q = pvt.c;
+          ldouble l_x = __builtin_fmal(one_n, ldouble(q), one_2n);
+          ldouble l_y = one - __builtin_fmal(one_n, ldouble(p), one_2n);
+          asy << std::endl;
+          asy << "label(\"\\large$" << (j + GRAPHVIZ_IXBASE) << "$\",(" << l_x << ',' << l_y << "));" << std::endl;
+          l_x = __builtin_fmal(one_n, ldouble(p), one_2n);
+          l_y = one - __builtin_fmal(one_n, ldouble(q), one_2n);
+          asy << "label(\"\\large$" << (j + GRAPHVIZ_IXBASE) << "$\",(" << l_x << ',' << l_y << "),lightgray);" << std::endl;
+        }
+      }
     }
 
     asy.close();
@@ -612,7 +632,7 @@ static bool print_asy()
 #ifdef PDFTK_PREFIX
   std::ostringstream pdftk_call;
   pdftk_call << PDFTK_PREFIX << "pdftk";
-  for (uchar s = 0u; s < S; ++s)
+  for (uchar s = 0u; s <= S; ++s)
     pdftk_call << " rowset_" << N << '-' << std::setfill('0') << std::setw(w) << (s + GRAPHVIZ_IXBASE) << std::setfill(' ') << ".pdf";
   pdftk_call << " cat output rowset-" << N << ".pdf verbose dont_ask >> rowset_" << N << ".log 2>&1";
   if (system(pdftk_call.str().c_str())) {

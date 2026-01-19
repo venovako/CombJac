@@ -22,3 +22,4 @@ rowset_24.exe > rowset_24.out 2> rowset_24.err
 rowset_28.exe > rowset_28.out 2> rowset_28.err
 rowset_32.exe > rowset_32.out 2> rowset_32.err
 rowset_36.exe > rowset_36.out 2> rowset_36.err
+rowset_40.exe > rowset_40.out 2> rowset_40.err
