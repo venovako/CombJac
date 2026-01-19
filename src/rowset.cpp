@@ -510,8 +510,11 @@ static bool print_asy()
   static const ldouble zero = 0.0L;
   static const ldouble one = 1.0L;
   static const ldouble one_n = one / ldouble(N);
-  static const ldouble one_2n = one / ldouble(2u * N);
-  static const ushort size_pt = N * 20u;
+  static const ldouble one_2n = one / ldouble(N << 1u);
+#ifndef ASYMPTOTE_FONTSIZE
+#define ASYMPTOTE_FONTSIZE 10u
+#endif /* !ASYMPTOTE_FONTSIZE */
+  static const ushort size_pt = N * ((ASYMPTOTE_FONTSIZE * 3u) >> 1u);
 
 #ifndef NDEBUG
   std::cerr << "Preparing the Asymptote visualization... " << std::flush;
@@ -533,10 +536,12 @@ static bool print_asy()
     asy << std::fixed << std::setprecision(17);
 
     // header
+    if (ASYMPTOTE_FONTSIZE != 12u)
+      asy << "import fontsize;" << std::endl << "defaultpen(fontsize(" << ASYMPTOTE_FONTSIZE << "pt));" << std::endl;
     if (s < S)
       asy << "texpreamble(\"\\usepackage[fixed]{fontawesome5}\");" << std::endl;
     asy << std::endl;
-    asy << "size(" << size_pt << ");" << std::endl;
+    asy << "size(" << size_pt << "pt);" << std::endl;
     asy << std::endl;
     asy << "draw(unitsquare);" << std::endl;
     asy << std::endl;
@@ -577,7 +582,7 @@ static bool print_asy()
         b_x << ',' << b_y << ")--(" <<
         c_x << ',' << c_y << ")--(" <<
         d_x << ',' << d_y << ")--cycle,mediumgray);" << std::endl;
-      asy << "label(\"\\large\\boldmath$" << (j + GRAPHVIZ_IXBASE) << "$\",(" << l_x << ',' << l_y << "),white);" << std::endl;
+      asy << "label(\"\\boldmath$" << (j + GRAPHVIZ_IXBASE) << "$\",(" << l_x << ',' << l_y << "),white);" << std::endl;
     }
 
     if (s < S) {
@@ -605,10 +610,10 @@ static bool print_asy()
           ldouble l_x = __builtin_fmal(one_n, ldouble(q), one_2n);
           ldouble l_y = one - __builtin_fmal(one_n, ldouble(p), one_2n);
           asy << std::endl;
-          asy << "label(\"\\large$" << (j + GRAPHVIZ_IXBASE) << "$\",(" << l_x << ',' << l_y << "));" << std::endl;
+          asy << "label(\"$" << (j + GRAPHVIZ_IXBASE) << "$\",(" << l_x << ',' << l_y << "));" << std::endl;
           l_x = __builtin_fmal(one_n, ldouble(p), one_2n);
           l_y = one - __builtin_fmal(one_n, ldouble(q), one_2n);
-          asy << "label(\"\\large$" << (j + GRAPHVIZ_IXBASE) << "$\",(" << l_x << ',' << l_y << "),lightgray);" << std::endl;
+          asy << "label(\"$" << (j + GRAPHVIZ_IXBASE) << "$\",(" << l_x << ',' << l_y << "),lightgray);" << std::endl;
         }
       }
     }
@@ -676,13 +681,6 @@ int main(int argc, char *argv[])
   if (!ok)
     return 4;
 
-  if (!print_hdr())
-    return 5;
-  if (!print_idx())
-    return 6;
-  if (!print_asy())
-    return 7;
-
 #ifndef NDEBUG
   std::cout << "# of failed attempts = ";
 #endif /* !NDEBUG */
@@ -700,5 +698,13 @@ int main(int argc, char *argv[])
   std::cout << " ms";
 #endif /* ?NDEBUG */
   std::cout << std::endl;
+
+  if (!print_hdr())
+    return 5;
+  if (!print_idx())
+    return 6;
+  if (!print_asy())
+    return 7;
+
   return EXIT_SUCCESS;
 }
