@@ -126,6 +126,11 @@ static const std::streamsize w = std::streamsize(3);
 #define NCP ((E) - (((N_1) << 1u) - 1u))
 #endif /* ?NCP */
 
+// index base (0 or 1) for the printouts
+#ifndef IXBASE
+#define IXBASE (ushort)1u
+#endif /* !IXBASE */
+
 typedef unsigned char uchar;
 static struct pivot { uchar r, c; } in_strat[E];
 typedef unsigned short ushort;
@@ -232,25 +237,22 @@ static bool print_gv()
 #endif /* !GRAPHVIZ_EDGECOLOR */
   gv << "\tedge [color=" << GRAPHVIZ_EDGECOLOR << ']' << std::endl;
   gv << "\t{" << std::endl;
-#ifndef GRAPHVIZ_IXBASE
-#define GRAPHVIZ_IXBASE (ushort)1u
-#endif /* !GRAPHVIZ_IXBASE */
   for (ushort i = 0u; i < E; ++i) {
     pivot &pvt = in_strat[i];
-    gv << "\t\t" << (i + GRAPHVIZ_IXBASE) << " [label=\"" << (i + GRAPHVIZ_IXBASE) << "=(" << (pvt.r + GRAPHVIZ_IXBASE)  << ',' << (pvt.c + GRAPHVIZ_IXBASE) << ")\"]" << std::endl;
+    gv << "\t\t" << (i + IXBASE) << " [label=\"" << (i + IXBASE) << "=(" << (pvt.r + IXBASE)  << ',' << (pvt.c + IXBASE) << ")\"]" << std::endl;
   }
   gv << "\t}" << std::endl;
   for (ushort i = 0u; i < E_1; ++i)
     for (ushort j = (i + 1u); j < E; ++j)
       if ((in_strat[i].r == in_strat[j].r) || (in_strat[i].r == in_strat[j].c) || (in_strat[i].c == in_strat[j].r) || (in_strat[i].c == in_strat[j].c))
-        gv << "\t" << (i + GRAPHVIZ_IXBASE) << " -- " << (j + GRAPHVIZ_IXBASE) << std::endl;
+        gv << "\t" << (i + IXBASE) << " -- " << (j + IXBASE) << std::endl;
   gv << "}" << std::endl;
   gv.close();
 #ifndef NDEBUG
   std::cerr << "done." << std::endl;
 #endif /* !NDEBUG */
 
-// use '-DGRAPHVIZ_PREFIX=""' if circo is in the PATH, or '-DGRAPHVIZ_PREFIX="graphviz_prefix/"' if it is not
+  // use '-DGRAPHVIZ_PREFIX=""' if circo is in the PATH, or '-DGRAPHVIZ_PREFIX="graphviz_prefix/"' if it is not
 #ifdef GRAPHVIZ_PREFIX
 #ifndef NDEBUG
   std::cerr << "Plotting the graph... " << std::flush;
@@ -281,10 +283,10 @@ static bool print_gv()
     return false;
   }
   for (ushort i = 0u; i < E_1; ++i) {
-    txt << std::setw(maxw) << (i + GRAPHVIZ_IXBASE) << "@(" << std::setw(w) << (in_strat[i].r + GRAPHVIZ_IXBASE) << ',' << std::setw(w) << (in_strat[i].c + GRAPHVIZ_IXBASE) << ")[" << std::setw(maxw) << indep_cnts[i] << "]";
+    txt << std::setw(maxw) << (i + IXBASE) << "@(" << std::setw(w) << (in_strat[i].r + IXBASE) << ',' << std::setw(w) << (in_strat[i].c + IXBASE) << ")[" << std::setw(maxw) << indep_cnts[i] << "]";
     for (ushort j = 0u; j < indep_cnts[i]; ++j) {
       const ushort k = indep_sets[i][j];
-      txt << ", " << std::setw(maxw) << (k + GRAPHVIZ_IXBASE) << "=(" << std::setw(w) << (in_strat[k].r + GRAPHVIZ_IXBASE) << ',' << std::setw(w) << (in_strat[k].c + GRAPHVIZ_IXBASE) << ')';
+      txt << ", " << std::setw(maxw) << (k + IXBASE) << "=(" << std::setw(w) << (in_strat[k].r + IXBASE) << ',' << std::setw(w) << (in_strat[k].c + IXBASE) << ')';
     }
     txt << std::endl;
   }
@@ -524,7 +526,7 @@ static bool print_asy()
   ushort i = 0u;
   for (uchar s = 0u; s <= S; ++s) {
     std::ostringstream asy_filename;
-    asy_filename << "rowset_" << N << '-' << std::setfill('0') << std::setw(w) << (s + GRAPHVIZ_IXBASE) << std::setfill(' ') << ".asy";
+    asy_filename << "rowset_" << N << '-' << std::setfill('0') << std::setw(w) << (s + IXBASE) << std::setfill(' ') << ".asy";
     std::ofstream asy(asy_filename.str(), (std::ios_base::out | std::ios_base::trunc));
     if (!asy) {
 #ifndef NDEBUG
@@ -582,7 +584,7 @@ static bool print_asy()
         b_x << ',' << b_y << ")--(" <<
         c_x << ',' << c_y << ")--(" <<
         d_x << ',' << d_y << ")--cycle,mediumgray);" << std::endl;
-      asy << "label(\"\\boldmath$" << (j + GRAPHVIZ_IXBASE) << "$\",(" << l_x << ',' << l_y << "),white);" << std::endl;
+      asy << "label(\"\\boldmath$" << (j + IXBASE) << "$\",(" << l_x << ',' << l_y << "),white);" << std::endl;
     }
 
     if (s < S) {
@@ -610,16 +612,16 @@ static bool print_asy()
           ldouble l_x = __builtin_fmal(one_n, ldouble(q), one_2n);
           ldouble l_y = one - __builtin_fmal(one_n, ldouble(p), one_2n);
           asy << std::endl;
-          asy << "label(\"$" << (j + GRAPHVIZ_IXBASE) << "$\",(" << l_x << ',' << l_y << "));" << std::endl;
+          asy << "label(\"$" << (j + IXBASE) << "$\",(" << l_x << ',' << l_y << "));" << std::endl;
           l_x = __builtin_fmal(one_n, ldouble(p), one_2n);
           l_y = one - __builtin_fmal(one_n, ldouble(q), one_2n);
-          asy << "label(\"$" << (j + GRAPHVIZ_IXBASE) << "$\",(" << l_x << ',' << l_y << "),lightgray);" << std::endl;
+          asy << "label(\"$" << (j + IXBASE) << "$\",(" << l_x << ',' << l_y << "),lightgray);" << std::endl;
         }
       }
     }
 
     asy.close();
-// use '-DASYMPTOTE_PREFIX=""' if asy is in the PATH, or '-DASYMPTOTE_PREFIX="asymptote_prefix/"' if it is not
+    // use '-DASYMPTOTE_PREFIX=""' if asy is in the PATH, or '-DASYMPTOTE_PREFIX="asymptote_prefix/"' if it is not
 #ifdef ASYMPTOTE_PREFIX
     std::ostringstream asy_call;
     asy_call << ASYMPTOTE_PREFIX << "asy -v -nobatchView -f pdf -tex pdflatex " << asy_filename.str() << " >> rowset_" << N << ".log 2>&1";
@@ -632,13 +634,13 @@ static bool print_asy()
 #endif /* ASYMPTOTE_PREFIX */
   }
 
-// use '-DPDFTK_PREFIX=""' if pdftk is in the PATH, or '-DPDFTK_PREFIX="pdftk_prefix/"' if it is not
+  // use '-DPDFTK_PREFIX=""' if pdftk is in the PATH, or '-DPDFTK_PREFIX="pdftk_prefix/"' if it is not
 #ifdef ASYMPTOTE_PREFIX
 #ifdef PDFTK_PREFIX
   std::ostringstream pdftk_call;
   pdftk_call << PDFTK_PREFIX << "pdftk";
   for (uchar s = 0u; s <= S; ++s)
-    pdftk_call << " rowset_" << N << '-' << std::setfill('0') << std::setw(w) << (s + GRAPHVIZ_IXBASE) << std::setfill(' ') << ".pdf";
+    pdftk_call << " rowset_" << N << '-' << std::setfill('0') << std::setw(w) << (s + IXBASE) << std::setfill(' ') << ".pdf";
   pdftk_call << " cat output rowset-" << N << ".pdf verbose dont_ask >> rowset_" << N << ".log 2>&1";
   if (system(pdftk_call.str().c_str())) {
 #ifndef NDEBUG
