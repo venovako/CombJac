@@ -359,13 +359,14 @@ static bool next_pivot()
     return true;
   else { // new step head
     const ushort ix = ushort(qr.quot);
+    if (indep_cnts[ix] < P_1)
+      return false;
     if (ix) {
       std::copy(used_set, used_set + used_cnt, tmp_set);
       std::sort(tmp_set, tmp_set + used_cnt);
     }
-    if (indep_cnts[ix] < P_1)
-      return false;
     ushort *const dst = &(active_sets[ix][0u]);
+    // indep_sets[ix] - used_set
     if ((active_cnts[ix] = ushort(std::set_difference(&(indep_sets[ix][0u]), &(indep_sets[ix][indep_cnts[ix]]), tmp_set, tmp_set + used_cnt, dst) - dst)) < P_1)
       return false;
     used_set[used_cnt++] = ix;
