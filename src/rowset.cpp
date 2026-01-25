@@ -183,9 +183,9 @@ static bool make_in_strat()
 #ifndef NDEBUG
   std::cerr << "Generating pivots... " << std::flush;
 #endif /* !NDEBUG */
-  ushort i = 0u;
-  for (uchar r = 0u; r < N_1; ++r) {
-    for (uchar c = r + 1u; c < N; ++c) {
+  ushort i = ushort(0u);
+  for (uchar r = uchar(0u); r < N_1; ++r) {
+    for (uchar c = uchar(r + 1u); c < N; ++c) {
       pivot &pvt = in_strat[i++];
       pvt.r = r;
       pvt.c = c;
@@ -198,8 +198,8 @@ static bool make_in_strat()
 #ifndef NDEBUG
   std::cerr << "Building per-pivot independent sets... " << std::flush;
 #endif /* !NDEBUG */
-  for (i = 0u; i < E_1; ++i)
-    for (ushort j = (i + 1u); j < E; ++j)
+  for (i = ushort(0u); i < E_1; ++i)
+    for (ushort j = ushort(i + 1u); j < E; ++j)
       if ((in_strat[i].r != in_strat[j].r) && (in_strat[i].r != in_strat[j].c) && (in_strat[i].c != in_strat[j].r) && (in_strat[i].c != in_strat[j].c))
         indep_sets[i][indep_cnts[i]++] = j;
 #ifndef NDEBUG
@@ -209,7 +209,7 @@ static bool make_in_strat()
 #ifndef NDEBUG
   std::cerr << "Asserting monotonically non-increasing cardinalities... " << std::flush;
 #endif /* !NDEBUG */
-  for (i = 1u; i < E_1; ++i)
+  for (i = ushort(1u); i < E_1; ++i)
     if (indep_cnts[i] > indep_cnts[i - 1u]) {
 #ifndef NDEBUG
       std::cerr << "error!" << std::endl;
@@ -251,13 +251,13 @@ static bool print_gv()
 #endif /* !GRAPHVIZ_EDGECOLOR */
   gv << "\tedge [color=" << GRAPHVIZ_EDGECOLOR << ']' << std::endl;
   gv << "\t{" << std::endl;
-  for (ushort i = 0u; i < E; ++i) {
+  for (ushort i = ushort(0u); i < E; ++i) {
     pivot &pvt = in_strat[i];
     gv << "\t\t" << (i + IXBASE) << " [label=\"" << (i + IXBASE) << "=(" << (pvt.r + IXBASE)  << ',' << (pvt.c + IXBASE) << ")\"]" << std::endl;
   }
   gv << "\t}" << std::endl;
-  for (ushort i = 0u; i < E_1; ++i)
-    for (ushort j = (i + 1u); j < E; ++j)
+  for (ushort i = ushort(0u); i < E_1; ++i)
+    for (ushort j = ushort(i + 1u); j < E; ++j)
       if ((in_strat[i].r == in_strat[j].r) || (in_strat[i].r == in_strat[j].c) || (in_strat[i].c == in_strat[j].r) || (in_strat[i].c == in_strat[j].c))
         gv << "\t" << (i + IXBASE) << " -- " << (j + IXBASE) << std::endl;
   gv << "}" << std::endl;
@@ -296,9 +296,9 @@ static bool print_gv()
 #endif /* !NDEBUG */
     return false;
   }
-  for (ushort i = 0u; i < E_1; ++i) {
+  for (ushort i = ushort(0u); i < E_1; ++i) {
     txt << std::setw(maxw) << (i + IXBASE) << "@(" << std::setw(w) << (in_strat[i].r + IXBASE) << ',' << std::setw(w) << (in_strat[i].c + IXBASE) << ")[" << std::setw(maxw) << indep_cnts[i] << "]";
-    for (ushort j = 0u; j < indep_cnts[i]; ++j) {
+    for (ushort j = ushort(0u); j < indep_cnts[i]; ++j) {
       const ushort k = indep_sets[i][j];
       txt << ", " << std::setw(maxw) << (k + IXBASE) << "=(" << std::setw(w) << (in_strat[k].r + IXBASE) << ',' << std::setw(w) << (in_strat[k].c + IXBASE) << ')';
     }
@@ -433,9 +433,9 @@ static bool print_hdr()
       << '{' << std::endl;
 
   ushort i = 0u;
-  for (uchar s = 0u; s < S; ++s) {
+  for (uchar s = uchar(0u); s < S; ++s) {
     hdr << "  {";
-    for (uchar p = 0u; p < P; ++p) {
+    for (uchar p = uchar(0u); p < P; ++p) {
       const pivot &pvt = in_strat[used_set[i]];
       hdr << '{' << std::setw(w) << ushort(pvt.r) << ',' << std::setw(w) << ushort(pvt.c) << '}';
       if (p < P_1)
@@ -499,9 +499,9 @@ static bool print_idx()
       << '{' << std::endl;
 
   ushort i = 0u;
-  for (uchar s = 0u; s < S; ++s) {
+  for (uchar s = uchar(0u); s < S; ++s) {
     idx << "  {";
-    for (uchar p = 0u; p < P; ++p) {
+    for (uchar p = uchar(0u); p < P; ++p) {
       idx << std::setw(maxw) << used_set[i];
       if (p < P_1)
         idx << ',';
@@ -559,7 +559,7 @@ static bool print_asy()
 
   // draw images
   ushort i = 0u;
-  for (uchar s = 0u; s <= S; ++s) {
+  for (uchar s = uchar(0u); s <= S; ++s) {
     std::ostringstream asy_filename;
     asy_filename << "rowset_" << N << '-' << std::setfill('0') << std::setw(w) << (s + IXBASE) << std::setfill(' ') << ".asy";
     std::ofstream asy(asy_filename.str(), (std::ios_base::out | std::ios_base::trunc));
@@ -573,7 +573,7 @@ static bool print_asy()
     asy << std::fixed << std::setprecision(17);
 
     // header
-    if (ASYMPTOTE_FONTSIZE != 12u)
+    if (unsigned(ASYMPTOTE_FONTSIZE) != 12u)
       asy << "import fontsize;" << std::endl << "defaultpen(fontsize(" << ASYMPTOTE_FONTSIZE << "pt));" << std::endl;
     if (s < S)
       asy << "texpreamble(\"\\usepackage[fixed]{fontawesome5}\");" << std::endl;
@@ -601,9 +601,9 @@ static bool print_asy()
     // D---C
     // |   |
     // A---B
-    for (uchar j = 0u; j < N; ++j) {
-      const uchar j1 = j + 1u;
-      const uchar n_j1 = N - j1;
+    for (uchar j = uchar(0u); j < N; ++j) {
+      const uchar j1 = uchar(j + 1u);
+      const uchar n_j1 = uchar(N - j1);
       const ldouble a_x = one_n * j;
       const ldouble a_y = one_n * n_j1;
       const ldouble b_x = a_x + one_n;
@@ -624,32 +624,32 @@ static bool print_asy()
 
     if (s < S) {
       // step positions
-      for (uchar j = 0u; j < P; ++j) {
+      for (uchar j = uchar(0u); j < P; ++j) {
         const pivot &pvt = in_strat[used_set[i++]];
-        const uchar p = pvt.r;
-        const uchar q = pvt.c;
-        ldouble l_x = __builtin_fmal(one_n, ldouble(q), one_2n);
-        ldouble l_y = one - __builtin_fmal(one_n, ldouble(p), one_2n);
+        const ldouble p = ldouble(pvt.r);
+        const ldouble q = ldouble(pvt.c);
+        ldouble l_x = __builtin_fmal(one_n, q, one_2n);
+        ldouble l_y = one - __builtin_fmal(one_n, p, one_2n);
         asy << std::endl;
         asy << "label(\"\\faChessRook\",(" << l_x << ',' << l_y << "));" << std::endl;
-        l_x = __builtin_fmal(one_n, ldouble(p), one_2n);
-        l_y = one - __builtin_fmal(one_n, ldouble(q), one_2n);
+        l_x = __builtin_fmal(one_n, p, one_2n);
+        l_y = one - __builtin_fmal(one_n, q, one_2n);
         asy << "label(\"\\faChessRook\",(" << l_x << ',' << l_y << "),lightgray);" << std::endl;
       }
     }
     else {
       i = 0u;
-      for (uchar j = 0u; j < S; ++j) {
-        for (uchar k = 0u; k < P; ++k) {
+      for (uchar j = uchar(0u); j < S; ++j) {
+        for (uchar k = uchar(0u); k < P; ++k) {
           const pivot &pvt = in_strat[used_set[i++]];
-          const uchar p = pvt.r;
-          const uchar q = pvt.c;
-          ldouble l_x = __builtin_fmal(one_n, ldouble(q), one_2n);
-          ldouble l_y = one - __builtin_fmal(one_n, ldouble(p), one_2n);
+          const ldouble p = ldouble(pvt.r);
+          const ldouble q = ldouble(pvt.c);
+          ldouble l_x = __builtin_fmal(one_n, q, one_2n);
+          ldouble l_y = one - __builtin_fmal(one_n, p, one_2n);
           asy << std::endl;
           asy << "label(\"$" << (j + IXBASE) << "$\",(" << l_x << ',' << l_y << "));" << std::endl;
-          l_x = __builtin_fmal(one_n, ldouble(p), one_2n);
-          l_y = one - __builtin_fmal(one_n, ldouble(q), one_2n);
+          l_x = __builtin_fmal(one_n, p, one_2n);
+          l_y = one - __builtin_fmal(one_n, q, one_2n);
           asy << "label(\"$" << (j + IXBASE) << "$\",(" << l_x << ',' << l_y << "),lightgray);" << std::endl;
         }
       }
@@ -674,7 +674,7 @@ static bool print_asy()
 #ifdef PDFTK_PREFIX
   std::ostringstream pdftk_call;
   pdftk_call << PDFTK_PREFIX << "pdftk";
-  for (uchar s = 0u; s <= S; ++s)
+  for (uchar s = uchar(0u); s <= S; ++s)
     pdftk_call << " rowset_" << N << '-' << std::setfill('0') << std::setw(w) << (s + IXBASE) << std::setfill(' ') << ".pdf";
   pdftk_call << " cat output rowset-" << N << ".pdf verbose dont_ask >> rowset_" << N << ".log 2>&1";
   if (system(pdftk_call.str().c_str())) {
