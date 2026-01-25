@@ -315,7 +315,10 @@ static bool next_pivot()
 {
 #ifndef NDEBUG
   if (sig_on) {
-    std::cerr << std::endl << std::setw(maxw) << E << " pivots used with " << std::setw(20) << btrack << " backtracks";
+#ifndef _WIN32
+    std::cerr << std::endl;
+#endif /* !_WIN32 */
+    std::cerr << std::setw(maxw) << E << " pivots used with " << std::setw(20) << btrack << " backtracks";
     sig_on = false;
 #ifdef _WIN32
     std::cerr << ((signal(SIGINT, sighan) == SIG_ERR) ? '!' : '.') << std::endl;
