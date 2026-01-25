@@ -147,16 +147,11 @@ typedef long double ldouble;
 #ifndef NDEBUG
 static volatile bool sig_on = false;
 #ifdef _WIN32
-typedef int (*sig_t)(int, int);
-static int sighan(int sig, int flt)
-#else /* !_WIN32 */
+typedef void (*sig_t)(int);
+#endif /* _WIN32 */
 static void sighan(int sig)
-#endif /* !_WIN32 */
 {
   sig_on = (sig == SIGINT);
-#ifdef _WIN32
-  return flt;
-#endif /* _WIN32 */
 }
 #endif /* !NDEBUG */
 
@@ -320,7 +315,7 @@ static bool next_pivot()
 {
 #ifndef NDEBUG
   if (sig_on) {
-    std::cerr << std::endl << std::setw(maxw) << E << " pivots used with " << btrack << " backtracks";
+    std::cerr << std::endl << std::setw(maxw) << E << " pivots used with " << std::setw(20) << btrack << " backtracks";
     sig_on = false;
 #ifdef _WIN32
     std::cerr << ((signal(SIGINT, sighan) == SIG_ERR) ? '!' : '.') << std::endl;
