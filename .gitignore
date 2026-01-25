@@ -48,5 +48,6 @@
 *.hdr
 *.idx
 *.log
+*.tmp
 *.pdf
 *.txt

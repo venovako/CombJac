@@ -22,6 +22,9 @@
 
 #include <algorithm>
 #include <chrono>
+#ifndef NDEBUG
+#include <csignal>
+#endif /* !NDEBUG */
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -136,10 +139,26 @@ static struct pivot { uchar r, c; } in_strat[E];
 typedef unsigned short ushort;
 static ushort indep_sets[E_1][NCP], active_sets[E_1][NCP];
 static ushort indep_cnts[E_1], active_cnts[E_1];
-static ushort used_set[E], tmp_set[E], used_cnt, max_used_cnt;
+static ushort used_set[E], tmp_set[E], used_cnt;
 typedef unsigned long long ullong;
 static ullong btrack;
 typedef long double ldouble;
+
+#ifndef NDEBUG
+static volatile bool sig_on = false;
+#ifdef _WIN32
+typedef int (*sig_t)(int, int);
+static int sighan(int sig, int flt)
+#else /* !_WIN32 */
+static void sighan(int sig)
+#endif /* !_WIN32 */
+{
+  sig_on = (sig == SIGINT);
+#ifdef _WIN32
+  return flt;
+#endif /* _WIN32 */
+}
+#endif /* !NDEBUG */
 
 static bool make_in_strat()
 {
@@ -160,7 +179,7 @@ static bool make_in_strat()
     return false;
   if (!memset(tmp_set, 0, sizeof(tmp_set)))
     return false;
-  max_used_cnt = used_cnt = 0u;
+  used_cnt = 0u;
   btrack = 0ull;
 #ifndef NDEBUG
   std::cerr << "done." << std::endl;
@@ -300,42 +319,55 @@ static bool print_gv()
 static bool next_pivot()
 {
 #ifndef NDEBUG
-  if (max_used_cnt < used_cnt) {
-    max_used_cnt = used_cnt;
-    std::cerr << "\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b\b" << std::flush
-              << "Used " << std::setw(maxw) << max_used_cnt << " out of " <<  std::setw(maxw) << E << " pivots..."
-              << std::flush;
+  if (sig_on) {
+    std::cerr << std::endl << std::setw(maxw) << E << " pivots used with " << btrack << " backtracks";
+    sig_on = false;
+#ifdef _WIN32
+    std::cerr << ((signal(SIGINT, sighan) == SIG_ERR) ? '!' : '.') << std::endl;
+#else /* !_WIN32 */
+    std::cerr << '.' << std::endl;
+#endif /* ?_WIN32 */
   }
 #endif /* !NDEBUG */
-  const div_t qr = div(int(used_cnt), int(P));
-  if (qr.rem) {
-    const ushort prev_ix = used_set[used_cnt - 1u];
-    const ushort needed = P_1 - ushort(qr.rem);
-    if (needed) {
-      const ushort P_pix = (P - ushort(qr.rem)) << 1u;
-      const ushort prev_cnt = active_cnts[prev_ix];
-      ushort j, prev_cnt_ = prev_cnt - needed;
-
-      for (j = 0u; j < prev_cnt_; ++j) {
-        const ushort my_ix = active_sets[prev_ix][j];
-        if ((N - in_strat[my_ix].r) < P_pix)
-          break;
-        const ushort mync_cnt = indep_cnts[my_ix];
-        if (mync_cnt < needed)
-          break; // only if |indep_cnts[j]| monotonically non-increasing w.r.t. j, else continue;
-      }
-      if (j < prev_cnt_)
-        prev_cnt_ = j;
-
+  // the index of the current step
+  const ushort six = ushort(used_cnt / P);
+  // the pivot index within the current step
+  const ushort pix = ushort(used_cnt % P);
+  if (pix) { // not a head of the step
+    ushort i = ushort(used_cnt - 1u);
+    // the previous pivot's index
+    const ushort prev_ix = used_set[i];
+    const ushort prev_cnt = active_cnts[prev_ix];
+    // how many more pivots to complete the step, not counting the one to be tried here
+    const ushort needed = ushort(P_1 - pix);
+    if (needed) { // not the last pivot in the step
+      // see [*] below
+      const ushort P_pix = ushort((P - pix) << 1u);
       const ushort *const prev_end = &(active_sets[prev_ix][prev_cnt]);
-      for (ushort i = 0u; i < prev_cnt_; ++i) {
+      for (i = ushort(0u); i < prev_cnt; /**/) {
+        // the pivot index to try in this iteration
         const ushort my_ix = active_sets[prev_ix][i];
+        // i := i+1 = i', exit if not enough pivots remaining
+        if ((prev_cnt - ++i) < needed)
+          break; // return false
         const ushort mync_cnt = indep_cnts[my_ix];
-        const ushort *const prev_beg = &(active_sets[prev_ix][i + 1u]);
-        const ushort *const mync_beg = &(indep_sets[my_ix][0u]);
+        // only if |indep_cnts[j]| monotonically non-increasing w.r.t. j, else continue
+        if (mync_cnt < needed)
+          break; // return false
+        // [*] only if the underlying strategy is row-cyclic:
+        // exit if r is too large to accomodate enough independent indices above r that should follow
+        if ((N - in_strat[my_ix].r) < P_pix)
+          break; // return false
+        // the tail of the previous active set, beyond my_ix
+        const ushort *const prev_beg = &(active_sets[prev_ix][i]);
+        // this pivot's partial independent set
+        const ushort *const mync_beg = indep_sets[my_ix];
         const ushort *const mync_end = &(indep_sets[my_ix][mync_cnt]);
-        ushort *const my_dst = &(active_sets[my_ix][0u]);
+        // this pivot's active set to be built
+        ushort *const my_dst = active_sets[my_ix];
+        // active_cnts[my_ix] <= min(mync_cnt, prev_cnt-i')
         active_cnts[my_ix] = ushort(std::set_intersection(prev_beg, prev_end, mync_beg, mync_end, my_dst) - my_dst);
+        // try my_ix if there are enough pivots available in the new active set
         if (active_cnts[my_ix] >= needed) {
           used_set[used_cnt++] = my_ix;
           if (next_pivot())
@@ -347,30 +379,33 @@ static bool next_pivot()
           ++btrack;
       }
     }
-    else {
-      used_set[used_cnt++] = active_sets[prev_ix][0u];
-      if (next_pivot())
-        return true;
-      --used_cnt;
-      ++btrack;
+    else { // the last pivot in the step
+      for (i = ushort(0u); i < prev_cnt; ++i) {
+        used_set[used_cnt++] = active_sets[prev_ix][i];
+        if (next_pivot())
+          return true;
+        --used_cnt;
+        ++btrack;
+      }
     }
   }
   else if (used_cnt == E)
     return true;
   else { // new step head
-    const ushort ix = ushort(qr.quot);
-    if (indep_cnts[ix] < P_1)
+    // only if the underlying strategy is row-cyclic:
+    // the head pivot is the next unused in the first row, i.e., the one with the index six
+    if (indep_cnts[six] < P_1)
       return false;
-    if (ix) {
+    if (six) { // not the initial step, i.e., used_cnt > 0
       std::copy(used_set, used_set + used_cnt, tmp_set);
       std::sort(tmp_set, tmp_set + used_cnt);
     }
-    ushort *const dst = &(active_sets[ix][0u]);
-    // indep_sets[ix] - used_set
-    active_cnts[ix] = ushort(std::set_difference(&(indep_sets[ix][0u]), &(indep_sets[ix][indep_cnts[ix]]), tmp_set, tmp_set + used_cnt, dst) - dst);
-    if (active_cnts[ix] < P_1)
+    ushort *const dst = active_sets[six];
+    // indep_sets[six] - used_set
+    active_cnts[six] = ushort(std::set_difference(indep_sets[six], &(indep_sets[six][indep_cnts[six]]), tmp_set, tmp_set + used_cnt, dst) - dst);
+    if (active_cnts[six] < P_1)
       return false;
-    used_set[used_cnt++] = ix;
+    used_set[used_cnt++] = six;
     if (next_pivot())
       return true;
     --used_cnt;
@@ -674,16 +709,19 @@ int main(int argc, char *argv[])
     return 3;
 
 #ifndef NDEBUG
-  std::cerr << "                                 " << std::flush;
+  sig_t old = (sig_t)signal(SIGINT, sighan);
+  if (old == SIG_ERR)
+    std::cerr << "failed to install the SIGINT handler" << std::endl;
 #endif /* !NDEBUG */
   const auto start1 = std::chrono::high_resolution_clock::now();
-  const bool ok = next_pivot();
+  if (!next_pivot())
+    return 4;
   const auto end1 = std::chrono::high_resolution_clock::now();
 #ifndef NDEBUG
-  std::cerr << (ok ? " done." : " error!") << std::endl;
+  old = (sig_t)signal(SIGINT, old);
+  if (old == SIG_ERR)
+    std::cerr << "failed to restore the SIGINT handler" << std::endl;
 #endif /* !NDEBUG */
-  if (!ok)
-    return 4;
 
 #ifndef NDEBUG
   std::cout << "# of failed attempts = ";
