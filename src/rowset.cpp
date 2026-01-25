@@ -182,7 +182,7 @@ static bool make_in_strat()
 #endif /* !NDEBUG */
 
 #ifndef NDEBUG
-  std::cerr << "Building forward-looking independent sets... " << std::flush;
+  std::cerr << "Building per-pivot independent sets... " << std::flush;
 #endif /* !NDEBUG */
   for (i = 0u; i < E_1; ++i)
     for (ushort j = (i + 1u); j < E; ++j)
@@ -271,7 +271,7 @@ static bool print_gv()
 #endif /* GRAPHVIZ_PREFIX */
 
 #ifndef NDEBUG
-  std::cerr << "Storing the forward-looking independent sets... " << std::flush;
+  std::cerr << "Storing the per-pivot independent sets... " << std::flush;
 #endif /* !NDEBUG */
   std::ostringstream txt_filename;
   txt_filename << "rowset_" << N << ".txt";
@@ -367,7 +367,8 @@ static bool next_pivot()
     }
     ushort *const dst = &(active_sets[ix][0u]);
     // indep_sets[ix] - used_set
-    if ((active_cnts[ix] = ushort(std::set_difference(&(indep_sets[ix][0u]), &(indep_sets[ix][indep_cnts[ix]]), tmp_set, tmp_set + used_cnt, dst) - dst)) < P_1)
+    active_cnts[ix] = ushort(std::set_difference(&(indep_sets[ix][0u]), &(indep_sets[ix][indep_cnts[ix]]), tmp_set, tmp_set + used_cnt, dst) - dst);
+    if (active_cnts[ix] < P_1)
       return false;
     used_set[used_cnt++] = ix;
     if (next_pivot())
