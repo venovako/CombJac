@@ -139,7 +139,7 @@ static struct pivot { uchar r, c; } in_strat[E];
 typedef unsigned short ushort;
 static ushort indep_sets[E_1][NCP], active_sets[E_1][NCP];
 static ushort indep_cnts[E_1], active_cnts[E_1];
-static ushort used_set[E], tmp_set[E], used_cnt;
+static ushort used_set[E], tmp_set[E_1], used_cnt;
 typedef unsigned long long ullong;
 static ullong btrack;
 typedef long double ldouble;
@@ -315,11 +315,11 @@ static bool next_pivot()
 {
 #ifndef NDEBUG
   if (sig_on) {
+    sig_on = false;
 #ifndef _WIN32
     std::cerr << std::endl;
 #endif /* !_WIN32 */
     std::cerr << std::setw(maxw) << E << " pivots used with " << std::setw(20) << btrack << " backtracks";
-    sig_on = false;
 #ifdef _WIN32
     std::cerr << ((signal(SIGINT, sighan) == SIG_ERR) ? '!' : '.') << std::endl;
 #else /* !_WIN32 */
