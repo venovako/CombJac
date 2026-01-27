@@ -49,7 +49,7 @@
 #endif /* ?_WIN32 */
 #endif /* ?MAX_N */
 
-#if (!defined(N))
+#if !defined(N)
 #error N not defined
 #elif ((N) < (MIN_N))
 #error N < MIN_N
@@ -131,11 +131,23 @@ static const std::streamsize w = std::streamsize(3);
 
 // index base (0 or 1) for the printouts
 #ifndef IXBASE
-#define IXBASE (ushort)1u
+#define IXBASE ushort(1u)
 #endif /* !IXBASE */
 
+#ifdef R
+#error R defined
+#else /* !R */
+#define R 0u
+#endif /* ?R */
+
+#ifdef C
+#error C defined
+#else /* !C */
+#define C 1u
+#endif /* ?C */
+
 typedef unsigned char uchar;
-static struct pivot { uchar r, c; } in_strat[E];
+static uchar in_strat[E][2u];
 typedef unsigned short ushort;
 static ushort indep_sets[E_1][NCP], active_sets[E_1][NCP];
 static ushort indep_cnts[E_1], active_cnts[E_1];
@@ -174,7 +186,7 @@ static bool make_in_strat()
     return false;
   if (!memset(tmp_set, 0, sizeof(tmp_set)))
     return false;
-  used_cnt = 0u;
+  used_cnt = ushort(0u);
   btrack = 0ull;
 #ifndef NDEBUG
   std::cerr << "done." << std::endl;
@@ -186,9 +198,9 @@ static bool make_in_strat()
   ushort i = ushort(0u);
   for (uchar r = uchar(0u); r < N_1; ++r) {
     for (uchar c = uchar(r + 1u); c < N; ++c) {
-      pivot &pvt = in_strat[i++];
-      pvt.r = r;
-      pvt.c = c;
+      in_strat[i][R] = r;
+      in_strat[i][C] = c;
+      ++i;
     }
   }
 #ifndef NDEBUG
@@ -200,7 +212,7 @@ static bool make_in_strat()
 #endif /* !NDEBUG */
   for (i = ushort(0u); i < E_1; ++i)
     for (ushort j = ushort(i + 1u); j < E; ++j)
-      if ((in_strat[i].r != in_strat[j].r) && (in_strat[i].r != in_strat[j].c) && (in_strat[i].c != in_strat[j].r) && (in_strat[i].c != in_strat[j].c))
+      if ((in_strat[i][R] != in_strat[j][R]) && (in_strat[i][R] != in_strat[j][C]) && (in_strat[i][C] != in_strat[j][R]) && (in_strat[i][C] != in_strat[j][C]))
         indep_sets[i][indep_cnts[i]++] = j;
 #ifndef NDEBUG
   std::cerr << "done." << std::endl;
@@ -251,14 +263,12 @@ static bool print_gv()
 #endif /* !GRAPHVIZ_EDGECOLOR */
   gv << "\tedge [color=" << GRAPHVIZ_EDGECOLOR << ']' << std::endl;
   gv << "\t{" << std::endl;
-  for (ushort i = ushort(0u); i < E; ++i) {
-    pivot &pvt = in_strat[i];
-    gv << "\t\t" << (i + IXBASE) << " [label=\"" << (i + IXBASE) << "=(" << (pvt.r + IXBASE)  << ',' << (pvt.c + IXBASE) << ")\"]" << std::endl;
-  }
+  for (ushort i = ushort(0u); i < E; ++i)
+    gv << "\t\t" << (i + IXBASE) << " [label=\"" << (i + IXBASE) << "=(" << (in_strat[i][R] + IXBASE) << ',' << (in_strat[i][C] + IXBASE) << ")\"]" << std::endl;
   gv << "\t}" << std::endl;
   for (ushort i = ushort(0u); i < E_1; ++i)
     for (ushort j = ushort(i + 1u); j < E; ++j)
-      if ((in_strat[i].r == in_strat[j].r) || (in_strat[i].r == in_strat[j].c) || (in_strat[i].c == in_strat[j].r) || (in_strat[i].c == in_strat[j].c))
+      if ((in_strat[i][R] == in_strat[j][R]) || (in_strat[i][R] == in_strat[j][C]) || (in_strat[i][C] == in_strat[j][R]) || (in_strat[i][C] == in_strat[j][C]))
         gv << "\t" << (i + IXBASE) << " -- " << (j + IXBASE) << std::endl;
   gv << "}" << std::endl;
   gv.close();
@@ -297,10 +307,10 @@ static bool print_gv()
     return false;
   }
   for (ushort i = ushort(0u); i < E_1; ++i) {
-    txt << std::setw(maxw) << (i + IXBASE) << "@(" << std::setw(w) << (in_strat[i].r + IXBASE) << ',' << std::setw(w) << (in_strat[i].c + IXBASE) << ")[" << std::setw(maxw) << indep_cnts[i] << "]";
+    txt << std::setw(maxw) << (i + IXBASE) << "@(" << std::setw(w) << (in_strat[i][R] + IXBASE) << ',' << std::setw(w) << (in_strat[i][C] + IXBASE) << ")[" << std::setw(maxw) << indep_cnts[i] << "]";
     for (ushort j = ushort(0u); j < indep_cnts[i]; ++j) {
       const ushort k = indep_sets[i][j];
-      txt << ", " << std::setw(maxw) << (k + IXBASE) << "=(" << std::setw(w) << (in_strat[k].r + IXBASE) << ',' << std::setw(w) << (in_strat[k].c + IXBASE) << ')';
+      txt << ", " << std::setw(maxw) << (k + IXBASE) << "=(" << std::setw(w) << (in_strat[k][R] + IXBASE) << ',' << std::setw(w) << (in_strat[k][C] + IXBASE) << ')';
     }
     txt << std::endl;
   }
@@ -354,7 +364,7 @@ static bool next_pivot()
           break; // return false
         // [*] only if the underlying strategy is row-cyclic:
         // exit if r is too large to accomodate enough independent indices above r that should follow
-        if ((N - in_strat[my_ix].r) < P_pix)
+        if ((N - in_strat[my_ix][R]) < P_pix)
           break; // return false
         // the tail of the previous active set, beyond my_ix
         const ushort *const prev_beg = &(active_sets[prev_ix][i]);
@@ -432,15 +442,14 @@ static bool print_hdr()
       << '[' << std::setw(3) << S << "][" << std::setw(3) << P << "][2] =" << std::endl
       << '{' << std::endl;
 
-  ushort i = 0u;
+  ushort i = ushort(0u);
   for (uchar s = uchar(0u); s < S; ++s) {
     hdr << "  {";
     for (uchar p = uchar(0u); p < P; ++p) {
-      const pivot &pvt = in_strat[used_set[i]];
-      hdr << '{' << std::setw(w) << ushort(pvt.r) << ',' << std::setw(w) << ushort(pvt.c) << '}';
+      const ushort j = used_set[i++];
+      hdr << '{' << std::setw(w) << ushort(in_strat[j][R]) << ',' << std::setw(w) << ushort(in_strat[j][C]) << '}';
       if (p < P_1)
         hdr << ',';
-      ++i;
     }
     hdr << '}';
     if (s < S_1)
@@ -458,8 +467,8 @@ static bool print_hdr()
   for (uchar s = S; s; ) {
     hdr << "  {";
     for (uchar p = P; p; ) {
-      const pivot &pvt = in_strat[used_set[--i]];
-      hdr << '{' << std::setw(w) << ushort(pvt.r) << ',' << std::setw(w) << ushort(pvt.c) << '}';
+      const ushort j = used_set[--i];
+      hdr << '{' << std::setw(w) << ushort(in_strat[j][R]) << ',' << std::setw(w) << ushort(in_strat[j][C]) << '}';
       if (--p)
         hdr << ',';
     }
@@ -498,7 +507,7 @@ static bool print_idx()
       << '[' << std::setw(3) << S << "][" << std::setw(3) << P << "] =" << std::endl
       << '{' << std::endl;
 
-  ushort i = 0u;
+  ushort i = ushort(0u);
   for (uchar s = uchar(0u); s < S; ++s) {
     idx << "  {";
     for (uchar p = uchar(0u); p < P; ++p) {
@@ -558,7 +567,7 @@ static bool print_asy()
 #endif /* !NDEBUG */
 
   // draw images
-  ushort i = 0u;
+  ushort i = ushort(0u);
   for (uchar s = uchar(0u); s <= S; ++s) {
     std::ostringstream asy_filename;
     asy_filename << "rowset_" << N << '-' << std::setfill('0') << std::setw(w) << (s + IXBASE) << std::setfill(' ') << ".asy";
@@ -625,9 +634,9 @@ static bool print_asy()
     if (s < S) {
       // step positions
       for (uchar j = uchar(0u); j < P; ++j) {
-        const pivot &pvt = in_strat[used_set[i++]];
-        const ldouble p = ldouble(pvt.r);
-        const ldouble q = ldouble(pvt.c);
+        const ushort k = used_set[i++];
+        const ldouble p = ldouble(in_strat[k][R]);
+        const ldouble q = ldouble(in_strat[k][C]);
         ldouble l_x = __builtin_fmal(one_n, q, one_2n);
         ldouble l_y = one - __builtin_fmal(one_n, p, one_2n);
         asy << std::endl;
@@ -638,12 +647,12 @@ static bool print_asy()
       }
     }
     else {
-      i = 0u;
+      i = ushort(0u);
       for (uchar j = uchar(0u); j < S; ++j) {
         for (uchar k = uchar(0u); k < P; ++k) {
-          const pivot &pvt = in_strat[used_set[i++]];
-          const ldouble p = ldouble(pvt.r);
-          const ldouble q = ldouble(pvt.c);
+          const ushort l = used_set[i++];
+          const ldouble p = ldouble(in_strat[l][R]);
+          const ldouble q = ldouble(in_strat[l][C]);
           ldouble l_x = __builtin_fmal(one_n, q, one_2n);
           ldouble l_y = one - __builtin_fmal(one_n, p, one_2n);
           asy << std::endl;
