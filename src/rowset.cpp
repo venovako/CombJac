@@ -487,6 +487,61 @@ static bool print_hdr()
   return true;
 }
 
+static bool print_ftn()
+{
+  if (N >= 128u)
+    return true;
+#ifndef NDEBUG
+  std::cerr << "Storing the strategy arrays... " << std::flush;
+#endif /* !NDEBUG */
+
+  std::ostringstream ftn_filename;
+  ftn_filename << "rowset_" << N << ".ftn";
+  std::ofstream ftn(ftn_filename.str(), (std::ios::out | std::ios::trunc));
+  if (!ftn) {
+#ifndef NDEBUG
+    std::cerr << "error!" << std::endl;
+#endif /* !NDEBUG */
+    return false;
+  }
+
+  ftn << "integer(kind=int8), parameter :: cRC" << std::setfill('0') << std::setw(3) << N << std::setfill(' ')
+      << "(2," << std::setw(3) << P << ',' << std::setw(3) << S << ") = reshape([&" << std::endl;
+
+  ushort i = ushort(0u);
+  for (uchar s = uchar(0u); s < S; ++s) {
+    ftn << "     ";
+    for (uchar p = uchar(0u); p < P; ++p) {
+      const ushort j = used_set[i++];
+      ftn << std::setw(w) << (in_strat[j][R] + IXBASE) << ',' << std::setw(w) << (in_strat[j][C] + IXBASE) << (((s < S_1) || (p < P_1)) ? ',' : ' ');
+    }
+    ftn << '&' << std::endl;
+  }
+
+  ftn << "], [2," << std::setw(3) << P << ',' << std::setw(3) << S << "])" << std::endl << std::endl;
+
+  ftn << "integer(kind=int8), parameter :: RCc" << std::setfill('0') << std::setw(3) << N << std::setfill(' ')
+      << "(2," << std::setw(3) << P << ',' << std::setw(3) << S << ") = reshape([&" << std::endl;
+
+  i = E;
+  for (uchar s = S; s; --s) {
+    ftn << "     ";
+    for (uchar p = P; p; --p) {
+      const ushort j = used_set[--i];
+      ftn << std::setw(w) << (in_strat[j][R] + IXBASE) << ',' << std::setw(w) << (in_strat[j][C] + IXBASE) << (((s > 1u) || (p > 1u)) ? ',' : ' ');
+    }
+    ftn << '&' << std::endl;
+  }
+
+  ftn << "], [2," << std::setw(3) << P << ',' << std::setw(3) << S << "])" << std::endl;
+  ftn.close();
+
+#ifndef NDEBUG
+  std::cerr << "done." << std::endl;
+#endif /* !NDEBUG */
+  return true;
+}
+
 static bool print_idx()
 {
 #ifndef NDEBUG
@@ -750,10 +805,12 @@ int main(int argc, char *argv[])
 
   if (!print_hdr())
     return 5;
-  if (!print_idx())
+  if (!print_ftn())
     return 6;
-  if (!print_asy())
+  if (!print_idx())
     return 7;
+  if (!print_asy())
+    return 8;
 
   return EXIT_SUCCESS;
 }
