@@ -349,8 +349,7 @@ static bool next_pivot()
     // how many more pivots to complete the step, not counting the one to be tried here
     const ushort needed = ushort(P_1 - pix);
     if (needed) { // not the last pivot in the step
-      // see [*] below
-      const ushort P_pix = ushort((P - pix) << 1u);
+      const ushort P_pix = ushort((P - pix) << 1u); // see [*] below
       const ushort *const prev_end = &(active_sets[prev_ix][prev_cnt]);
       for (i = ushort(0u); i < prev_cnt; /**/) {
         // the pivot index to try in this iteration
@@ -383,7 +382,7 @@ static bool next_pivot()
           --used_cnt;
           ++btrack;
         }
-        else
+        else // return false
           ++btrack;
       }
     }
