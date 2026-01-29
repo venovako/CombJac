@@ -8,8 +8,8 @@ echo 'use, intrinsic :: iso_fortran_env, only: int8' >> rowset.f90
 echo 'implicit none' >> rowset.f90
 for ((N=2;N<=42;N+=2))
 do
-    echo '#include "rowset_'$N'.hdr"' >> rowset.h
-    echo "include 'rowset_"$N".ftn'" >> rowset.f90
+	echo '#include "rowset_'$N'.hdr"' >> rowset.h
+	echo "include 'rowset_"$N".ftn'" >> rowset.f90
 done
 unset N
 echo '#endif /* !ROWSET_H */' >> rowset.h

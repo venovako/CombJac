@@ -154,9 +154,18 @@ static ushort indep_cnts[E_1], active_cnts[E_1];
 static ushort used_set[E], tmp_set[E_1], used_cnt;
 typedef unsigned long long ullong;
 static ullong btrack;
+#ifndef NDEBUG
+static ullong rcall;
+#endif /* !NDEBUG */
 typedef long double ldouble;
 
-#ifndef NDEBUG
+#ifdef NOEXCEPT
+#error NOEXCEPT defined
+#else /* !NOEXCEPT */
+#ifdef NDEBUG
+#define NOEXCEPT true
+#else /* !NDEBUG */
+#define NOEXCEPT false
 static volatile bool sig_on = false;
 #ifdef _WIN32
 typedef void (*sig_t)(int);
@@ -165,9 +174,10 @@ static void sighan(int sig)
 {
   sig_on = (sig == SIGINT);
 }
-#endif /* !NDEBUG */
+#endif /* ?NDEBUG */
+#endif /* ?NOEXCEPT */
 
-static bool make_in_strat()
+static bool make_in_strat() noexcept(NOEXCEPT)
 {
 #ifndef NDEBUG
   std::cerr << "Clearing memory... " << std::flush;
@@ -189,6 +199,7 @@ static bool make_in_strat()
   used_cnt = ushort(0u);
   btrack = 0ull;
 #ifndef NDEBUG
+  rcall = 0ull;
   std::cerr << "done." << std::endl;
 #endif /* !NDEBUG */
 
@@ -321,7 +332,7 @@ static bool print_gv()
   return true;
 }
 
-static bool next_pivot()
+static bool next_pivot() noexcept(NOEXCEPT)
 {
 #ifndef NDEBUG
   if (sig_on) {
@@ -377,21 +388,38 @@ static bool next_pivot()
         // try my_ix if there are enough pivots available in the new active set
         if (active_cnts[my_ix] >= needed) {
           used_set[used_cnt++] = my_ix;
+#ifndef NDEBUG
+          std::clog << ++rcall << ", " << used_cnt << ", +" << (my_ix + IXBASE) << std::endl;
+#endif /* !NDEBUG */
           if (next_pivot())
             return true;
           --used_cnt;
+#ifndef NDEBUG
+          std::clog << ++rcall << ", " << used_cnt << ", -" << (my_ix + IXBASE) << std::endl;
+#endif /* !NDEBUG */
           ++btrack;
         }
-        else // return false
+        else {
           ++btrack;
+#ifndef NDEBUG
+          std::clog << ++rcall << ", " << used_cnt << ",  " << (my_ix + IXBASE) << std::endl;
+#endif /* !NDEBUG */
+        }
       }
     }
     else { // the last pivot in the step
       for (i = ushort(0u); i < prev_cnt; ++i) {
-        used_set[used_cnt++] = active_sets[prev_ix][i];
+        const ushort my_ix = active_sets[prev_ix][i];
+        used_set[used_cnt++] = my_ix;
+#ifndef NDEBUG
+        std::clog << ++rcall << ", " << used_cnt << ", +" << (my_ix + IXBASE) << std::endl;
+#endif /* !NDEBUG */
         if (next_pivot())
           return true;
         --used_cnt;
+#ifndef NDEBUG
+        std::clog << ++rcall << ", " << used_cnt << ", -" << (my_ix + IXBASE) << std::endl;
+#endif /* !NDEBUG */
         ++btrack;
       }
     }
@@ -413,9 +441,15 @@ static bool next_pivot()
     if (active_cnts[six] < P_1)
       return false;
     used_set[used_cnt++] = six;
+#ifndef NDEBUG
+    std::clog << ++rcall << ", " << used_cnt << ", ." << (six + IXBASE) << std::endl;
+#endif /* !NDEBUG */
     if (next_pivot())
       return true;
     --used_cnt;
+#ifndef NDEBUG
+    std::clog << ++rcall << ", " << used_cnt << ", !" << (six + IXBASE) << std::endl;
+#endif /* !NDEBUG */
     ++btrack;
   }
   return false;
