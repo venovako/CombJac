@@ -152,7 +152,7 @@ typedef unsigned long long ullong;
 static ullong strat, max_strat;
 typedef long double ldouble;
 
-static void make_in_strat()
+static void make_in_strat(const bool diagne)
 {
   if (!memset(in_strat, 0, sizeof(in_strat)))
     exit(EXIT_FAILURE);
@@ -171,13 +171,25 @@ static void make_in_strat()
   used_cnt = ushort(0u);
   strat = 0ull;
 
-  // diagonals: (1,N); (2,N),(1,N-1); (3,N),(2,N-1),(1,N-2); ...
   ushort i = ushort(0u);
-  for (uchar r = uchar(0u); r < N_1; ++r) {
-    for (uchar l = uchar(0u); l <= r; ++l) {
-      in_strat[i][R] = r - l;
-      in_strat[i][C] = N_1 - l;
-      ++i;
+  if (diagne) {
+    // diagonals: (1,N); (2,N),(1,N-1); (3,N),(2,N-1),(1,N-2); ...
+    for (uchar r = uchar(0u); r < N_1; ++r) {
+      for (uchar l = uchar(0u); l <= r; ++l) {
+        in_strat[i][R] = r - l;
+        in_strat[i][C] = N_1 - l;
+        ++i;
+      }
+    }
+  }
+  else {
+    // row-cyclic
+    for (uchar r = uchar(0u); r < N_1; ++r) {
+      for (uchar c = uchar(r + 1u); c < N; ++c) {
+        in_strat[i][R] = r;
+        in_strat[i][C] = c;
+        ++i;
+      }
     }
   }
 
@@ -611,8 +623,9 @@ int main(int argc, char *argv[])
     std::cerr << argv[0] << " [max_strat]" << std::endl;
     return EXIT_FAILURE;
   }
-  max_strat = ullong((argc == 1) ? 0ll : atoll(argv[1]));
-  make_in_strat();
+  const long long m = ((argc == 1) ? 0ll : atoll(argv[1]));
+  max_strat = ullong((m < 0ll) ? -(m + 1ll) : m);
+  make_in_strat(m >= 0ll);
   print_gv();
   return (next_pivot() ? EXIT_SUCCESS : EXIT_FAILURE);
 }
