@@ -152,10 +152,9 @@ typedef unsigned short ushort;
 static ushort indep_sets[E_1][NCP], active_sets[E_1][NCP];
 static ushort indep_cnts[E_1], active_cnts[E_1];
 static ushort used_set[E], tmp_set[E_1], used_cnt;
-typedef unsigned long long ullong;
-static ullong btrack;
 #ifndef NDEBUG
-static ullong rcall;
+typedef unsigned long long ullong;
+static ullong btrack, rcall;
 #endif /* !NDEBUG */
 typedef long double ldouble;
 
@@ -197,9 +196,8 @@ static bool make_in_strat() noexcept(NOEXCEPT)
   if (!memset(tmp_set, 0, sizeof(tmp_set)))
     return false;
   used_cnt = ushort(0u);
-  btrack = 0ull;
 #ifndef NDEBUG
-  rcall = 0ull;
+  rcall = btrack = 0ull;
   std::cerr << "done." << std::endl;
 #endif /* !NDEBUG */
 
@@ -348,8 +346,6 @@ static bool next_pivot() noexcept(NOEXCEPT)
 #endif /* ?_WIN32 */
   }
 #endif /* !NDEBUG */
-  // the index of the current step
-  const ushort six = ushort(used_cnt / P);
   // the pivot index within the current step
   const ushort pix = ushort(used_cnt % P);
   if (pix) { // not a head of the step
@@ -395,16 +391,16 @@ static bool next_pivot() noexcept(NOEXCEPT)
             return true;
           --used_cnt;
 #ifndef NDEBUG
+          ++btrack;
           std::clog << ++rcall << ", " << used_cnt << ", -" << (my_ix + IXBASE) << std::endl;
 #endif /* !NDEBUG */
-          ++btrack;
         }
+#ifndef NDEBUG
         else {
           ++btrack;
-#ifndef NDEBUG
           std::clog << ++rcall << ", " << used_cnt << ",  " << (my_ix + IXBASE) << std::endl;
-#endif /* !NDEBUG */
         }
+#endif /* !NDEBUG */
       }
     }
     else { // the last pivot in the step
@@ -418,15 +414,17 @@ static bool next_pivot() noexcept(NOEXCEPT)
           return true;
         --used_cnt;
 #ifndef NDEBUG
+        ++btrack;
         std::clog << ++rcall << ", " << used_cnt << ", -" << (my_ix + IXBASE) << std::endl;
 #endif /* !NDEBUG */
-        ++btrack;
       }
     }
   }
   else if (used_cnt == E)
     return true;
   else { // new step head
+    // the index of the current step
+    const ushort six = ushort(used_cnt / P);
     // only if the underlying strategy is row-cyclic:
     // the head pivot is the next unused in the first row, i.e., the one with the index six
     if (indep_cnts[six] < P_1)
@@ -448,9 +446,9 @@ static bool next_pivot() noexcept(NOEXCEPT)
       return true;
     --used_cnt;
 #ifndef NDEBUG
+    ++btrack;
     std::clog << ++rcall << ", " << used_cnt << ", !" << (six + IXBASE) << std::endl;
 #endif /* !NDEBUG */
-    ++btrack;
   }
   return false;
 }
@@ -773,7 +771,7 @@ static bool print_asy()
   pdftk_call << PDFTK_PREFIX << "pdftk";
   for (uchar s = uchar(0u); s <= S; ++s)
     pdftk_call << " rowset_" << N << '-' << std::setfill('0') << std::setw(w) << (s + IXBASE) << std::setfill(' ') << ".pdf";
-  pdftk_call << " cat output rowset-" << N << ".pdf verbose dont_ask >> rowset_" << N << ".log 2>&1";
+  pdftk_call << " cat output rowset_" << N << ".pdf verbose dont_ask >> rowset_" << N << ".log 2>&1";
   if (system(pdftk_call.str().c_str())) {
 #ifndef NDEBUG
     std::cerr << "error!" << std::endl;
@@ -819,14 +817,8 @@ int main(int argc, char *argv[])
 #endif /* !NDEBUG */
 
 #ifndef NDEBUG
-  std::cout << "# of failed attempts = ";
+  std::cout << "# of failed attempts = " << btrack << " in ";
 #endif /* !NDEBUG */
-  std::cout << btrack;
-#ifdef NDEBUG
-  std::cout << ", ";
-#else /* !NDEBUG */
-  std::cout << " in ";
-#endif /* ?NDEBUG */
   const auto ms = (std::chrono::duration_cast<std::chrono::milliseconds>((end0 - start0) + (end1 - start1))).count();
   std::cout << ms;
 #ifdef NDEBUG
