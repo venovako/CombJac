@@ -152,6 +152,8 @@ typedef unsigned long long ullong;
 static ullong strat, max_strat;
 typedef long double ldouble;
 
+static const char *prefix = (const char*)NULL;
+
 static void make_in_strat(const bool diagne)
 {
   if (!memset(in_strat, 0, sizeof(in_strat)))
@@ -202,12 +204,12 @@ static void make_in_strat(const bool diagne)
 static void print_gv()
 {
   std::ostringstream gv_filename;
-  gv_filename << "diagne_" << N << ".gv";
+  gv_filename << prefix << '_' << N << ".gv";
   std::ofstream gv(gv_filename.str(), (std::ios::out | std::ios::trunc));
   if (!gv)
     exit(EXIT_FAILURE);
 
-  gv << "strict graph diagne {" << std::endl << "\tmargin=0" << std::endl;
+  gv << "strict graph " << prefix << " {" << std::endl << "\tmargin=0" << std::endl;
 #ifndef GRAPHVIZ_SIZE
 #define GRAPHVIZ_SIZE 4.25
 #endif /* !GRAPHVIZ_SIZE */
@@ -234,13 +236,13 @@ static void print_gv()
   // use '-DGRAPHVIZ_PREFIX=""' if circo is in the PATH, or '-DGRAPHVIZ_PREFIX="graphviz_prefix/"' if it is not
 #ifdef GRAPHVIZ_PREFIX
   std::ostringstream circo_call;
-  circo_call << GRAPHVIZ_PREFIX << "circo -v -Tpdf -odiagne_" << N << ".pdf -x diagne_" << N << ".gv > diagne_" << N << ".log 2>&1";
+  circo_call << GRAPHVIZ_PREFIX << "circo -v -Tpdf -o" << prefix << '_' << N << ".pdf -x " << prefix << '_' << N << ".gv > " << prefix << '_' << N << ".log 2>&1";
   if (system(circo_call.str().c_str()))
     exit(EXIT_FAILURE);
 #endif /* GRAPHVIZ_PREFIX */
 
   std::ostringstream txt_filename;
-  txt_filename << "diagne_" << N << ".txt";
+  txt_filename << prefix << '_' << N << ".txt";
   std::ofstream txt(txt_filename.str(), (std::ios::out | std::ios::trunc));
   if (!txt)
     exit(EXIT_FAILURE);
@@ -259,7 +261,7 @@ static void print_gv()
 static void print_hdr()
 {
   std::ostringstream hdr_filename;
-  hdr_filename << "diagne_" << N << '-' << strat << ".hdr";
+  hdr_filename << prefix << '_' << N << '-' << strat << ".hdr";
   std::ofstream hdr(hdr_filename.str(), (std::ios::out | std::ios::trunc));
   if (!hdr)
     exit(EXIT_FAILURE);
@@ -314,7 +316,7 @@ static void print_ftn()
     return;
 
   std::ostringstream ftn_filename;
-  ftn_filename << "diagne_" << N << '-' << strat << ".ftn";
+  ftn_filename << prefix << '_' << N << '-' << strat << ".ftn";
   std::ofstream ftn(ftn_filename.str(), (std::ios::out | std::ios::trunc));
   if (!ftn)
     exit(EXIT_FAILURE);
@@ -354,7 +356,7 @@ static void print_ftn()
 static void print_idx()
 {
   std::ostringstream idx_filename;
-  idx_filename << "diagne_" << N << '-' << strat << ".idx";
+  idx_filename << prefix << '_' << N << '-' << strat << ".idx";
   std::ofstream idx(idx_filename.str(), (std::ios::out | std::ios::trunc));
   if (!idx)
     exit(EXIT_FAILURE);
@@ -417,7 +419,7 @@ static void print_asy()
   ushort i = ushort(0u);
   for (uchar s = uchar(0u); s <= S; ++s) {
     std::ostringstream asy_filename;
-    asy_filename << "diagne_" << N << '-' << strat << '_' << std::setfill('0') << std::setw(w) << (s + IXBASE) << std::setfill(' ') << ".asy";
+    asy_filename << prefix << '_' << N << '-' << strat << '_' << std::setfill('0') << std::setw(w) << (s + IXBASE) << std::setfill(' ') << ".asy";
     std::ofstream asy(asy_filename.str(), (std::ios_base::out | std::ios_base::trunc));
     if (!asy)
       exit(EXIT_FAILURE);
@@ -511,7 +513,7 @@ static void print_asy()
     // use '-DASYMPTOTE_PREFIX=""' if asy is in the PATH, or '-DASYMPTOTE_PREFIX="asymptote_prefix/"' if it is not
 #ifdef ASYMPTOTE_PREFIX
     std::ostringstream asy_call;
-    asy_call << ASYMPTOTE_PREFIX << "asy -v -nobatchView -f pdf -tex pdflatex " << asy_filename.str() << " >> diagne_" << N << '-' << strat << ".log 2>&1";
+    asy_call << ASYMPTOTE_PREFIX << "asy -v -nobatchView -f pdf -tex pdflatex " << asy_filename.str() << " >> " << prefix << '_' << N << '-' << strat << ".log 2>&1";
     if (system(asy_call.str().c_str()))
       exit(EXIT_FAILURE);
 #endif /* ASYMPTOTE_PREFIX */
@@ -523,8 +525,8 @@ static void print_asy()
   std::ostringstream pdftk_call;
   pdftk_call << PDFTK_PREFIX << "pdftk";
   for (uchar s = uchar(0u); s <= S; ++s)
-    pdftk_call << " diagne_" << N << '-' << strat << '_' << std::setfill('0') << std::setw(w) << (s + IXBASE) << std::setfill(' ') << ".pdf";
-  pdftk_call << " cat output diagne_" << N << '-' << strat << ".pdf verbose dont_ask >> diagne_" << N << '-' << strat << ".log 2>&1";
+    pdftk_call << " " << prefix << '_' << N << '-' << strat << '_' << std::setfill('0') << std::setw(w) << (s + IXBASE) << std::setfill(' ') << ".pdf";
+  pdftk_call << " cat output " << prefix << '_' << N << '-' << strat << ".pdf verbose dont_ask >> " << prefix << '_' << N << '-' << strat << ".log 2>&1";
   if (system(pdftk_call.str().c_str()))
     exit(EXIT_FAILURE);
 #endif /* PDFTK_PREFIX */
@@ -625,7 +627,14 @@ int main(int argc, char *argv[])
   }
   const long long m = ((argc == 1) ? 0ll : atoll(argv[1]));
   max_strat = ullong((m < 0ll) ? -(m + 1ll) : m);
-  make_in_strat(m >= 0ll);
+  if (m >= 0ll) {
+    prefix = "diagne";
+    make_in_strat(true);
+  }
+  else {
+    prefix = "rowset";
+    make_in_strat(false);
+  }
   print_gv();
   return (next_pivot() ? EXIT_SUCCESS : EXIT_FAILURE);
 }
