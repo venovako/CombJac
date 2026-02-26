@@ -72,7 +72,7 @@ static void print_gv()
   // use '-DGRAPHVIZ_PREFIX=""' if circo is in the PATH, or '-DGRAPHVIZ_PREFIX="graphviz_prefix/"' if it is not
 #ifdef GRAPHVIZ_PREFIX
   std::ostringstream circo_call;
-  circo_call << GRAPHVIZ_PREFIX << "circo -v -Tpdf -o" << prefix << '_' << N << ".pdf -x " << prefix << '_' << N << ".gv > " << prefix << '_' << N << ".log 2>&1";
+  circo_call << GRAPHVIZ_PREFIX << "circo -v -Tpdf -o" << prefix << '-' << N << ".pdf -x " << prefix << '_' << N << ".gv > " << prefix << '_' << N << ".log 2>&1";
   if (system(circo_call.str().c_str()))
     exit(EXIT_FAILURE);
 #endif /* GRAPHVIZ_PREFIX */

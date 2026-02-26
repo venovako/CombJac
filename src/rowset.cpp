@@ -128,7 +128,7 @@ static bool print_gv()
   std::cerr << "Plotting the graph... " << std::flush;
 #endif /* !NDEBUG */
   std::ostringstream circo_call;
-  circo_call << GRAPHVIZ_PREFIX << "circo -v -Tpdf -orowset_" << N << ".pdf -x rowset_" << N << ".gv > rowset_" << N << ".log 2>&1";
+  circo_call << GRAPHVIZ_PREFIX << "circo -v -Tpdf -orowset-" << N << ".pdf -x rowset_" << N << ".gv > rowset_" << N << ".log 2>&1";
   if (system(circo_call.str().c_str())) {
 #ifndef NDEBUG
     std::cerr << "error!" << std::endl;
