@@ -94,99 +94,99 @@ static void print_gv()
   txt.close();
 }
 
-static void print_hdr()
+static void print_hpp()
 {
-  std::ostringstream hdr_filename;
-  hdr_filename << prefix << '_' << N << '-' << strat << ".hdr";
-  std::ofstream hdr(hdr_filename.str(), (std::ios::out | std::ios::trunc));
-  if (!hdr)
+  std::ostringstream hpp_filename;
+  hpp_filename << prefix << '_' << N << '-' << strat << ".hpp";
+  std::ofstream hpp(hpp_filename.str(), (std::ios::out | std::ios::trunc));
+  if (!hpp)
     exit(EXIT_FAILURE);
   
-  hdr << "unsigned char cDG" << std::setfill('0') << std::setw(3) << N << std::setfill(' ')
+  hpp << "unsigned char cDG" << std::setfill('0') << std::setw(3) << N << std::setfill(' ')
       << '[' << std::setw(3) << S << "][" << std::setw(3) << P << "][2] =" << std::endl
       << '{' << std::endl;
 
   ushort i = ushort(0u);
   for (uchar s = uchar(0u); s < S; ++s) {
-    hdr << "  {";
+    hpp << "  {";
     for (uchar p = uchar(0u); p < P; ++p) {
       const ushort j = used_set[i++];
-      hdr << '{' << std::setw(w) << ushort(in_strat[j][R]) << ',' << std::setw(w) << ushort(in_strat[j][C]) << '}';
+      hpp << '{' << std::setw(w) << ushort(in_strat[j][R]) << ',' << std::setw(w) << ushort(in_strat[j][C]) << '}';
       if (p < P_1)
-        hdr << ',';
+        hpp << ',';
     }
-    hdr << '}';
+    hpp << '}';
     if (s < S_1)
-      hdr << ',';
-    hdr << std::endl;
+      hpp << ',';
+    hpp << std::endl;
   }
 
-  hdr << "};" << std::endl << std::endl;
+  hpp << "};" << std::endl << std::endl;
 
-  hdr << "unsigned char DGc" << std::setfill('0') << std::setw(3) << N << std::setfill(' ')
+  hpp << "unsigned char DGc" << std::setfill('0') << std::setw(3) << N << std::setfill(' ')
       << '[' << std::setw(3) << S << "][" << std::setw(3) << P << "][2] =" << std::endl
       << '{' << std::endl;
 
   i = E;
   for (uchar s = S; s; ) {
-    hdr << "  {";
+    hpp << "  {";
     for (uchar p = P; p; ) {
       const ushort j = used_set[--i];
-      hdr << '{' << std::setw(w) << ushort(in_strat[j][R]) << ',' << std::setw(w) << ushort(in_strat[j][C]) << '}';
+      hpp << '{' << std::setw(w) << ushort(in_strat[j][R]) << ',' << std::setw(w) << ushort(in_strat[j][C]) << '}';
       if (--p)
-        hdr << ',';
+        hpp << ',';
     }
-    hdr << '}';
+    hpp << '}';
     if (--s)
-      hdr << ',';
-    hdr << std::endl;
+      hpp << ',';
+    hpp << std::endl;
   }
 
-  hdr << "};" << std::endl;
-  hdr.close();
+  hpp << "};" << std::endl;
+  hpp.close();
 }
 
-static void print_ftn()
+static void print_f90()
 {
   if (N >= 128u)
     return;
 
-  std::ostringstream ftn_filename;
-  ftn_filename << prefix << '_' << N << '-' << strat << ".ftn";
-  std::ofstream ftn(ftn_filename.str(), (std::ios::out | std::ios::trunc));
-  if (!ftn)
+  std::ostringstream f90_filename;
+  f90_filename << prefix << '_' << N << '-' << strat << ".f90";
+  std::ofstream f90(f90_filename.str(), (std::ios::out | std::ios::trunc));
+  if (!f90)
     exit(EXIT_FAILURE);
 
-  ftn << "integer(kind=int8), parameter :: cDG" << std::setfill('0') << std::setw(3) << N << std::setfill(' ')
+  f90 << "integer(kind=int8), parameter :: cDG" << std::setfill('0') << std::setw(3) << N << std::setfill(' ')
       << "(2," << std::setw(3) << P << ',' << std::setw(3) << S << ") = reshape([&" << std::endl;
 
   ushort i = ushort(0u);
   for (uchar s = uchar(0u); s < S; ++s) {
-    ftn << "     ";
+    f90 << "     ";
     for (uchar p = uchar(0u); p < P; ++p) {
       const ushort j = used_set[i++];
-      ftn << std::setw(w) << (in_strat[j][R] + IXBASE) << ',' << std::setw(w) << (in_strat[j][C] + IXBASE) << (((s < S_1) || (p < P_1)) ? ',' : ' ');
+      f90 << std::setw(w) << (in_strat[j][R] + IXBASE) << ',' << std::setw(w) << (in_strat[j][C] + IXBASE) << (((s < S_1) || (p < P_1)) ? ',' : ' ');
     }
-    ftn << '&' << std::endl;
+    f90 << '&' << std::endl;
   }
 
-  ftn << "], [2," << std::setw(3) << P << ',' << std::setw(3) << S << "])" << std::endl << std::endl;
+  f90 << "], [2," << std::setw(3) << P << ',' << std::setw(3) << S << "])" << std::endl << std::endl;
 
-  ftn << "integer(kind=int8), parameter :: DGc" << std::setfill('0') << std::setw(3) << N << std::setfill(' ')
+  f90 << "integer(kind=int8), parameter :: DGc" << std::setfill('0') << std::setw(3) << N << std::setfill(' ')
       << "(2," << std::setw(3) << P << ',' << std::setw(3) << S << ") = reshape([&" << std::endl;
 
   i = E;
   for (uchar s = S; s; --s) {
-    ftn << "     ";
+    f90 << "     ";
     for (uchar p = P; p; --p) {
       const ushort j = used_set[--i];
-      ftn << std::setw(w) << (in_strat[j][R] + IXBASE) << ',' << std::setw(w) << (in_strat[j][C] + IXBASE) << (((s > 1u) || (p > 1u)) ? ',' : ' ');
+      f90 << std::setw(w) << (in_strat[j][R] + IXBASE) << ',' << std::setw(w) << (in_strat[j][C] + IXBASE) << (((s > 1u) || (p > 1u)) ? ',' : ' ');
     }
-    ftn << '&' << std::endl;
+    f90 << '&' << std::endl;
   }
 
-  ftn << "], [2," << std::setw(3) << P << ',' << std::setw(3) << S << "])" << std::endl;
-  ftn.close();
+  f90 << "], [2," << std::setw(3) << P << ',' << std::setw(3) << S << "])" << std::endl;
+  f90.close();
 }
 
 static void print_idx()
@@ -419,8 +419,8 @@ static bool next_pivot()
     }
   }
   else if (used_cnt == E) {
-    print_hdr();
-    print_ftn();
+    print_hpp();
+    print_f90();
     print_idx();
     print_asy();
     return (++strat == max_strat);
