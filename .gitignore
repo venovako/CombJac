@@ -44,11 +44,8 @@
 *.asy
 *.aux
 *.err
-*.ftn
 *.gv
-*.hdr
 *.idx
 *.log
 *.tmp
-*.pdf
 *.txt

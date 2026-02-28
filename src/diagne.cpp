@@ -2,6 +2,10 @@
 
 static ullong strat, max_strat;
 static const char *prefix;
+static const char *sname;
+static const char *names;
+static const char *iname;
+static const char *namei;
 
 static void make_in_strat(const bool diagne)
 {
@@ -102,7 +106,7 @@ static void print_hpp()
   if (!hpp)
     exit(EXIT_FAILURE);
   
-  hpp << "unsigned char cDG" << std::setfill('0') << std::setw(3) << N << std::setfill(' ')
+  hpp << "unsigned char " << sname << std::setfill('0') << std::setw(3) << N << std::setfill(' ')
       << '[' << std::setw(3) << S << "][" << std::setw(3) << P << "][2] =" << std::endl
       << '{' << std::endl;
 
@@ -123,7 +127,7 @@ static void print_hpp()
 
   hpp << "};" << std::endl << std::endl;
 
-  hpp << "unsigned char DGc" << std::setfill('0') << std::setw(3) << N << std::setfill(' ')
+  hpp << "unsigned char " << names << std::setfill('0') << std::setw(3) << N << std::setfill(' ')
       << '[' << std::setw(3) << S << "][" << std::setw(3) << P << "][2] =" << std::endl
       << '{' << std::endl;
 
@@ -157,7 +161,7 @@ static void print_f90()
   if (!f90)
     exit(EXIT_FAILURE);
 
-  f90 << "integer(kind=int8), parameter :: cDG" << std::setfill('0') << std::setw(3) << N << std::setfill(' ')
+  f90 << "integer(kind=int8), parameter :: " << sname << std::setfill('0') << std::setw(3) << N << std::setfill(' ')
       << "(2," << std::setw(3) << P << ',' << std::setw(3) << S << ") = reshape([&" << std::endl;
 
   ushort i = ushort(0u);
@@ -172,7 +176,7 @@ static void print_f90()
 
   f90 << "], [2," << std::setw(3) << P << ',' << std::setw(3) << S << "])" << std::endl << std::endl;
 
-  f90 << "integer(kind=int8), parameter :: DGc" << std::setfill('0') << std::setw(3) << N << std::setfill(' ')
+  f90 << "integer(kind=int8), parameter :: " << names << std::setfill('0') << std::setw(3) << N << std::setfill(' ')
       << "(2," << std::setw(3) << P << ',' << std::setw(3) << S << ") = reshape([&" << std::endl;
 
   i = E;
@@ -197,7 +201,7 @@ static void print_idx()
   if (!idx)
     exit(EXIT_FAILURE);
 
-  idx << "unsigned char iDG" << std::setfill('0') << std::setw(3) << N << std::setfill(' ')
+  idx << "unsigned char " << iname << std::setfill('0') << std::setw(3) << N << std::setfill(' ')
       << '[' << std::setw(3) << S << "][" << std::setw(3) << P << "] =" << std::endl
       << '{' << std::endl;
 
@@ -218,7 +222,7 @@ static void print_idx()
 
   idx << "};" << std::endl << std::endl;
 
-  idx << "unsigned char DGi" << std::setfill('0') << std::setw(3) << N << std::setfill(' ')
+  idx << "unsigned char " << namei << std::setfill('0') << std::setw(3) << N << std::setfill(' ')
       << '[' << std::setw(3) << S << "][" << std::setw(3) << P << "] =" << std::endl
       << '{' << std::endl;
 
@@ -462,10 +466,18 @@ int main(int argc, char *argv[])
   max_strat = ullong((m < 0ll) ? -(m + 1ll) : m);
   if (m >= 0ll) {
     prefix = "diagne";
+    sname = "cDG";
+    names = "DGc";
+    iname = "iDG";
+    namei = "DGi";
     make_in_strat(true);
   }
   else {
     prefix = "rowset";
+    sname = "cRC";
+    names = "RCc";
+    iname = "iRC";
+    namei = "RCi";
     make_in_strat(false);
   }
   print_gv();
