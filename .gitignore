@@ -41,11 +41,11 @@
 *.dwo
 
 # Other
+tmp
 *.asy
 *.aux
 *.err
 *.gv
 *.idx
 *.log
-*.tmp
 *.txt
