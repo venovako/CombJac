@@ -1,28 +1,7 @@
 #ifndef COMMON_HPP
 #define COMMON_HPP
 
-#ifdef _WIN32
-#ifndef _CRT_NONSTDC_NO_DEPRECATE
-#define _CRT_NONSTDC_NO_DEPRECATE
-#endif /* !_CRT_NONSTDC_NO_DEPRECATE */
-#ifndef _CRT_NONSTDC_NO_WARNINGS
-#define _CRT_NONSTDC_NO_WARNINGS
-#endif /* !_CRT_NONSTDC_NO_WARNINGS */
-#ifndef _CRT_SECURE_NO_DEPRECATE
-#define _CRT_SECURE_NO_DEPRECATE
-#endif /* !_CRT_SECURE_NO_DEPRECATE */
-#ifndef _CRT_SECURE_NO_WARNINGS
-#define _CRT_SECURE_NO_WARNINGS
-#endif /* !_CRT_SECURE_NO_WARNINGS */
-#ifndef _USE_MATH_DEFINES
-#define _USE_MATH_DEFINES
-#endif /* !_USE_MATH_DEFINES */
-#else /* !_WIN32 */
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE
-#endif /* !_GNU_SOURCE */
-#endif /* ?_WIN32 */
-
+#include "defs.hpp"
 #include <algorithm>
 #include <cstdio>
 #include <cstdlib>
