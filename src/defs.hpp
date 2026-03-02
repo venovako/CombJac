@@ -23,4 +23,16 @@
 #endif /* !_GNU_SOURCE */
 #endif /* ?_WIN32 */
 
+#ifdef R
+#error R defined
+#else /* !R */
+#define R 0u
+#endif /* ?R */
+
+#ifdef C
+#error C defined
+#else /* !C */
+#define C 1u
+#endif /* ?C */
+
 #endif /* !DEFS_HPP */

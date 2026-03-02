@@ -112,18 +112,6 @@ static const std::streamsize w = std::streamsize(3);
 #define IXBASE ushort(1u)
 #endif /* !IXBASE */
 
-#ifdef R
-#error R defined
-#else /* !R */
-#define R 0u
-#endif /* ?R */
-
-#ifdef C
-#error C defined
-#else /* !C */
-#define C 1u
-#endif /* ?C */
-
 #ifndef GRAPHVIZ_SIZE
 #define GRAPHVIZ_SIZE 4.25
 #endif /* !GRAPHVIZ_SIZE */

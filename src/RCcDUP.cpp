@@ -46,36 +46,43 @@ int main(int argc, char* argv[])
     std::cerr << *argv << std::endl;
     return EXIT_FAILURE;
   }
+
   /* (SW,NE); (SE,NW) */
+#ifdef _OPENMP
+#pragma omp parallel for default(none) shared(AN,AM)
+#endif /* _OPENMP */
   for (unsigned p = 0u; p < SN; ++p) {
     const unsigned q = (p << 1u);
     const unsigned q1 = (q + 1u);
     for (unsigned a = 0u; a < PN; ++a) {
       const unsigned b = (a << 1u);
       const unsigned b1 = (b + 1u);
-      const unsigned i = AN[p][a][0u];
-      const unsigned j = AN[p][a][1u];
+      const unsigned i = AN[p][a][R];
+      const unsigned j = AN[p][a][C];
       const unsigned i2 = (i << 1u);
       const unsigned j2 = (j << 1u);
       /* SW */
-      AM[q][b][0u] = (i2 + 1u);
-      AM[q][b][1u] = j2;
+      AM[q][b][R] = (i2 + 1u);
+      AM[q][b][C] = j2;
       /* NE */
-      AM[q][b1][0u] = i2;
-      AM[q][b1][1u] = (j2 + 1u);
+      AM[q][b1][R] = i2;
+      AM[q][b1][C] = (j2 + 1u);
       /* SE */
-      AM[q1][b][0u] = (i2 + 1u);
-      AM[q1][b][1u] = (j2 + 1u);
+      AM[q1][b][R] = (i2 + 1u);
+      AM[q1][b][C] = (j2 + 1u);
       /* NW */
-      AM[q1][b1][0u] = i2;
-      AM[q1][b1][1u] = j2;
+      AM[q1][b1][R] = i2;
+      AM[q1][b1][C] = j2;
     }
   }
   /* super-diag */
   const unsigned d = (M - 2u);
+#ifdef _OPENMP
+#pragma omp parallel for default(none) shared(AM,d)
+#endif /* _OPENMP */
   for (unsigned i = 0u; i < PM; ++i) {
     const unsigned j = ((PM - 1u) - i);
-    AM[d][j][1u] = ((AM[d][j][0u] = (i << 1u)) + 1u);
+    AM[d][j][C] = ((AM[d][j][R] = (i << 1u)) + 1u);
   }
 
   std::ofstream hpp(HM, (std::ios::out | std::ios::trunc));
@@ -88,7 +95,7 @@ int main(int argc, char* argv[])
   for (unsigned s = 0u; s < SM; ++s) {
     hpp << "  {";
     for (unsigned p = 0u; p < PM; ++p) {
-      hpp << '{' << std::setw(w) << unsigned(AM[s][p][0u]) << ',' << std::setw(w) << unsigned(AM[s][p][1u]) << '}';
+      hpp << '{' << std::setw(w) << unsigned(AM[s][p][R]) << ',' << std::setw(w) << unsigned(AM[s][p][C]) << '}';
       if (p < (PM - 1u))
         hpp << ',';
     }

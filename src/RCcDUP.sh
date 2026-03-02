@@ -58,7 +58,7 @@ else
 fi
 let SM=M-1
 let PM=M/2
-$2 -O3 -DN=${N}u -DHN="\"$AN.hpp\"" -DKN="$KN" -DAN=$AN -DSN=${SN}u -DPN=${PN}u -DM=${M}u -DHM="\"$AM.hpp\"" -DKM="$KM" -DAM=$AM -DSM=${SM}u -DPM=${PM}u -DKK="\"$KM\"" -DAK="\"$AM\"" RCcDUP.cpp -o RCcDUP.exe
+$2 -O3 -fopenmp -DN=${N}u -DHN="\"$AN.hpp\"" -DKN="$KN" -DAN=$AN -DSN=${SN}u -DPN=${PN}u -DM=${M}u -DHM="\"$AM.hpp\"" -DKM="$KM" -DAM=$AM -DSM=${SM}u -DPM=${PM}u -DKK="\"$KM\"" -DAK="\"$AM\"" RCcDUP.cpp -o RCcDUP.exe
 echo -n "$KN $AN[$SN][$PN][2] ==> $KM $AM[$SM][$PM][2] ... "
 unset N KN AN SN PN M KM AM SM PM
 ./RCcDUP.exe
