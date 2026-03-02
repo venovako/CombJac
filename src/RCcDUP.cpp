@@ -107,5 +107,23 @@ int main(int argc, char* argv[])
 
   hpp << "};" << std::endl;
   hpp.close();
+
+  std::ofstream f90(FM, (std::ios::out | std::ios::trunc));
+  if (!f90) {
+    std::cerr << FM << std::endl;
+    return EXIT_FAILURE;
+  }
+  f90 << "integer(kind=" << FK << "), parameter :: " << AK << "(2," << std::setw(v) << PM << ',' << std::setw(v) << SM << ") = reshape([&" << std::endl;
+
+  for (unsigned s = 0u; s < SM; ++s) {
+    f90 << "     ";
+    for (unsigned p = 0u; p < PM; ++p)
+      f90 << std::setw(w) << (AM[s][p][R] + 1u) << ',' << std::setw(w) << (AM[s][p][C] + 1u) << (((s < (SM - 1u)) || (p < (PM - 1u))) ? ',' : ' ');
+    f90 << '&' << std::endl;
+  }
+
+  f90 << "], [2," << std::setw(v) << PM << ',' << std::setw(v) << SM << "])" << std::endl;
+  f90.close();
+
   return EXIT_SUCCESS;
 }
