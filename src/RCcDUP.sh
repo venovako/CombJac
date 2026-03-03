@@ -1,6 +1,9 @@
 #!/bin/bash
-# Usage: ./RCcDUP.sh N CXX
-# M = 2 * N
+if [ $# -ne 2 ]
+then
+	echo "$0 N CXX"
+	exit
+fi
 N=$1
 if [ $N -lt 2 ]
 then

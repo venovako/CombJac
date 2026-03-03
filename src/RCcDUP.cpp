@@ -4,7 +4,7 @@
 #include <iomanip>
 #include <iostream>
 
-static
+static const
 #include HN
 static KM AM[SM][PM][2u];
 
