@@ -21,10 +21,6 @@ static const std::streamsize v = std::streamsize(1);
 static const std::streamsize v = std::streamsize(2);
 #endif /* ?N */
 
-#ifndef K
-#define K unsigned char
-#endif /* K */
-
 // # of pivots in a parallel step
 #ifdef P
 #error P defined
@@ -38,6 +34,18 @@ static const std::streamsize v = std::streamsize(2);
 #else /* S = N - 1 */
 #define S (N - 1u)
 #endif /* ?S */
+
+#ifdef DST
+#error DST defined
+#else /* !DST */
+#define DST 0u
+#endif /* ?DST */
+
+#ifdef SRC
+#error SRC defined
+#else /* !SRC */
+#define SRC 1u
+#endif /* ?SRC */
 
 static const
 #include H
@@ -60,23 +68,19 @@ static const unsigned W[P][P] =
 
 static struct pivot
 {
-  K r, c;
+  unsigned char r, c;
 } A[S][P], B[S][P];
-
-static struct comm
-{
-  unsigned dst : 31; // a rank to send to
-  unsigned col : 1; // left or right block-column
-  unsigned src : 31; // a rank to receive from
-  unsigned swp : 1; // a logical swap needed after MPI_Sendrecv_replace
-} X[S][P], Y[S][P];
-
-static size_t min_cost = ~0ull;
 
 static inline bool operator<(const pivot &a, const pivot &b)
 {
   return ((a.r < b.r) || ((a.r == b.r) && (a.c < b.c)));
 }
+
+static size_t min_cost = ~0ull;
+
+#ifdef REPLACE
+static signed char X[S][P][2u];
+static signed char Y[S][P][2u];
 
 static inline int s1r1(const pivot &a, const pivot &b)
 {
@@ -98,6 +102,10 @@ static inline bool accept_perm(const pivot a[], const pivot b[])
       return false;
   return true;
 }
+#else /* !REPLACE */
+static signed char X[S][P][2u][2u];
+static signed char Y[S][P][2u][2u];
+#endif /* ?REPLACE */
 
 static size_t gen_comm()
 {
@@ -105,31 +113,57 @@ static size_t gen_comm()
   for (unsigned i = 0u; i < S; ++i) {
     const unsigned j = ((i + 1u) % S);
     for (unsigned k = 0u; k < P; ++k) {
+#ifdef REPLACE
+      bool r = false;
       for (unsigned l = 0u; l < P; ++l) {
-        if ((A[i][k].r == A[j][l].r) || (A[i][k].r == A[j][l].c) || (A[i][k].c == A[j][l].r) || (A[i][k].c == A[j][l].c))
-          X[i][k].dst = l;
-        if ((A[j][k].r == A[i][l].r) || (A[j][k].r == A[i][l].c) || (A[j][k].c == A[i][l].r) || (A[j][k].c == A[i][l].c))
-          X[i][k].src = l;
-        if (A[i][k].r == A[j][k].r) {
-          X[i][k].col = 1u;
-          X[i][k].swp = 0u;
+        if (l == k)
+          continue;
+        if ((A[i][k].r == A[j][l].r) || (A[i][k].r == A[j][l].c)) {
+          r = true;
+          X[i][k][DST] = -int(l) - 1;
+          break;
         }
-        else if (A[i][k].r == A[j][k].c) {
-          X[i][k].col = 1u;
-          X[i][k].swp = 1u;
+        else if ((A[i][k].c == A[j][l].r) || (A[i][k].c == A[j][l].c)) {
+          X[i][k][DST] = int(l);
+          break;
         }
-        else if (A[i][k].c == A[j][k].r) {
-          X[i][k].col = 0u;
-          X[i][k].swp = 1u;
-        }
-        else if (A[i][k].c == A[j][k].c) {
-          X[i][k].col = 0u;
-          X[i][k].swp = 0u;
-        }
-        else // should never happen
-          exit(EXIT_FAILURE);
       }
-      w += (W[X[i][k].src][k] + W[k][X[i][k].dst]);
+      for (unsigned l = 0u; l < P; ++l) {
+        if (l == k)
+          continue;
+        if ((A[j][k].r == A[i][l].r) || (A[j][k].r == A[i][l].c)) {
+          X[i][k][SRC] = (r ? int(l) : (-int(l) - 1));
+          break;
+        }
+        else if ((A[j][k].c == A[i][l].r) || (A[j][k].c == A[i][l].c)) {
+          X[i][k][SRC] = (r ? (-int(l) - 1) : int(l));
+          break;
+        }
+      }
+      if (X[i][k][SRC] < 0)
+        w += W[-(X[i][k][SRC] + 1)][k];
+      else
+        w += W[X[i][k][SRC]][k];
+      if (X[i][k][DST] < 0)
+        w += W[k][-(X[i][k][DST] + 1)];
+      else
+        w += W[k][X[i][k][DST]];
+#else /* !REPLACE */
+      for (unsigned l = 0u; l < P; ++l) {
+        if ((A[i][k].r == A[j][l].r) || (A[i][k].r == A[j][l].c))
+          X[i][k][R][DST] = l;
+        if ((A[i][k].c == A[j][l].r) || (A[i][k].c == A[j][l].c))
+          X[i][k][C][DST] = l;
+        if ((A[j][k].r == A[i][l].r) || (A[j][k].r == A[i][l].c))
+          X[i][k][R][SRC] = l;
+        if ((A[j][k].c == A[i][l].r) || (A[j][k].c == A[i][l].c))
+          X[i][k][C][SRC] = l;
+      }
+      w += W[X[i][k][R][SRC]][k];
+      w += W[k][X[i][k][R][DST]];
+      w += W[X[i][k][C][SRC]][k];
+      w += W[k][X[i][k][C][DST]];
+#endif /* ?REPLACE */
     }
   }
   return w;
@@ -142,22 +176,21 @@ static size_t find_perms(const unsigned l)
     if (l < S) {
       const unsigned k = (l - 1u);
       do {
+#ifdef REPLACE
         if (accept_perm(A[k], A[l]))
+#endif /* REPLACE */
           f += find_perms(l + 1u);
       } while (std::prev_permutation(&(A[l][0u]), &(A[l][P])));
     }
     else {
       const unsigned k = (S - 1u);
+#ifdef REPLACE
       if (accept_perm(A[k], A[0u])) {
+#endif /* REPLACE */
         f = 1u;
         const size_t cost = gen_comm();
-#ifndef NDEBUG
-        std::cout << cost << ':' << std::endl;
-#endif /* !NDEBUG */
         if (cost < min_cost) {
-#ifdef NDEBUG
-        std::cout << cost << ':' << std::endl;
-#endif /* NDEBUG */
+          std::cout << '{' << std::endl;
           for (unsigned s = 0u; s < S; ++s) {
             std::cout << "  {";
             for (unsigned p = 0u; p < P; ++p) {
@@ -170,11 +203,32 @@ static size_t find_perms(const unsigned l)
               std::cout << ',';
             std::cout << std::endl;
           }
+          std::cout << "};" << std::endl;
+          std::cout << cost << ": {" << std::endl;
+          for (unsigned s = 0u; s < S; ++s) {
+            std::cout << "  {";
+            for (unsigned p = 0u; p < P; ++p) {
+#ifdef REPLACE
+              std::cout << '{' << std::setw(v+1) << int(X[s][p][DST]) << ',' << std::setw(v+1) << int(X[s][p][SRC]) << '}';
+#else /* !REPLACE */
+              std::cout << "{{" << std::setw(v) << int(X[s][p][R][DST]) << ',' << std::setw(v) << int(X[s][p][R][SRC]) << "},{" << std::setw(v) << int(X[s][p][C][DST]) << ',' << std::setw(v) << int(X[s][p][C][SRC]) << "}}";
+#endif /* ?REPLACE */
+              if (p < (P - 1u))
+                std::cout << ',';
+            }
+            std::cout << '}';
+            if (s < (S - 1u))
+              std::cout << ',';
+            std::cout << std::endl;
+          }
+          std::cout << "};" << std::endl << std::endl << std::flush;
           (void)memcpy(B, A, sizeof(A));
           (void)memcpy(Y, X, sizeof(X));
           min_cost = cost;
         }
+#ifdef REPLACE
       }
+#endif /* REPLACE */
     }
   }
   else {
