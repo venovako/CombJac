@@ -8,6 +8,7 @@
 #include <iostream>
 
 #ifndef V
+// if the weights are not defined, return the first strategy found
 #include <csetjmp>
 static jmp_buf jmp;
 #endif /* !V */
@@ -141,12 +142,10 @@ static const
 where wIJ is the cost of sending a unit of data from I to J
 (similar to the NUMA distances of `numactl -H`)
 */
-static const unsigned W[P][P] =
 #ifdef V
+static const unsigned W[P][P] =
 #include V
-#else /* !V */
-  {};
-#endif /* ?V */
+#endif /* V */
 
 static struct pivot
 {
@@ -161,6 +160,14 @@ static inline bool operator<(const pivot &a, const pivot &b)
 static size_t min_cost = ~0ull;
 
 #ifdef REPLACE
+/* MPI_Sendrecv_replace:
+   X[s][p][DST]:
+   < 0: send the left block to -(X[s][p][DST]+1) rank
+   >=0: send the right block to X[s][p][DST] rank
+   X[s][p][SRC]:
+   < 0: receive from -(X[s][p][SRC]+1) rank into the sending buffer and swap the buffers afterwards
+   >=0: receive from X[s][p][SRC] rank into the sending buffer
+*/
 static signed L X[S][P][2u];
 static signed L Y[S][P][2u];
 
@@ -185,6 +192,12 @@ static inline bool accept_perm(const pivot a[], const pivot b[])
   return true;
 }
 #else /* !REPLACE */
+/* MPI_Isend + MPI_Irecv, with double buffering:
+   X[s][p][R/C][DST/SRC]:
+   R/C: the left (R) or the right (C) block
+   DST: send to DST
+   SRC: receive from SRC
+*/
 static signed L X[S][P][2u][2u];
 static signed L Y[S][P][2u][2u];
 #endif /* ?REPLACE */
@@ -222,6 +235,7 @@ static size_t gen_comm()
           break;
         }
       }
+#ifdef V
       if (X[i][k][SRC] < 0)
         w += W[-(X[i][k][SRC] + 1)][k];
       else
@@ -230,6 +244,7 @@ static size_t gen_comm()
         w += W[k][-(X[i][k][DST] + 1)];
       else
         w += W[k][X[i][k][DST]];
+#endif /* V */
 #else /* !REPLACE */
       for (unsigned l = 0u; l < P; ++l) {
         if ((A[i][k].r == A[j][l].r) || (A[i][k].r == A[j][l].c))
@@ -241,10 +256,12 @@ static size_t gen_comm()
         if ((A[j][k].c == A[i][l].r) || (A[j][k].c == A[i][l].c))
           X[i][k][C][SRC] = l;
       }
+#ifdef V
       w += W[X[i][k][R][SRC]][k];
       w += W[k][X[i][k][R][DST]];
       w += W[X[i][k][C][SRC]][k];
       w += W[k][X[i][k][C][DST]];
+#endif /* V */
 #endif /* ?REPLACE */
     }
   }
@@ -285,7 +302,13 @@ static size_t find_perms(const unsigned l)
               std::cout << ',';
             std::cout << std::endl;
           }
-          std::cout << "};" << std::endl << cost << ": {" << std::endl;
+          std::cout << "};" << std::endl << cost <<
+#ifdef REPLACE
+            '='
+#else /* !REPLACE */
+            ':'
+#endif /* ?REPLACE */
+          << " {" << std::endl;
           for (unsigned s = 0u; s < S; ++s) {
             std::cout << "  {";
             for (unsigned p = 0u; p < P; ++p) {
