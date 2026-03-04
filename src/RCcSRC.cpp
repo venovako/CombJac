@@ -12,18 +12,41 @@
 static jmp_buf jmp;
 #endif /* !V */
 
+#ifdef K
+#error K defined
+#endif /* K */
 #if !defined(N)
 #error N not defined
 #elif (N < 4u)
 #error N < 4
-#elif (N > 100u)
-#error N > 100
+#elif (N > 200000u)
+#error N > 200000
 #elif (N & 1u)
 #error N odd
 #elif (N <= 10u)
+#define K char
 static const std::streamsize v = std::streamsize(1);
-#else /* N > 10 */
+#elif (N <= 100u)
+#define K char
 static const std::streamsize v = std::streamsize(2);
+#elif (N <= 256u)
+#define K char
+static const std::streamsize v = std::streamsize(3);
+#elif (N <= 1000u)
+#define K short
+static const std::streamsize v = std::streamsize(3);
+#elif (N <= 10000u)
+#define K short
+static const std::streamsize v = std::streamsize(4);
+#elif (N <= 65536u)
+#define K short
+static const std::streamsize v = std::streamsize(5);
+#elif (N <= 100000u)
+#define K int
+static const std::streamsize v = std::streamsize(5);
+#else /* 100000 < N <= 200000 */
+#define K int
+static const std::streamsize v = std::streamsize(6);
 #endif /* ?N */
 
 // # of pivots in a parallel step
@@ -33,17 +56,57 @@ static const std::streamsize v = std::streamsize(2);
 #define P (N >> 1u)
 #endif /* ?P */
 
+#ifdef L
+#error L defined
+#endif /* L */
 #if (P <= 10u)
+#define L char
 #ifdef REPLACE
 static const std::streamsize t = std::streamsize(2);
 #else /* !REPLACE */
 static const std::streamsize t = std::streamsize(1);
 #endif /* ?REPLACE */
-#else /* P > 10 */
+#elif (P <= 100u)
+#define L char
 #ifdef REPLACE
 static const std::streamsize t = std::streamsize(3);
 #else /* !REPLACE */
 static const std::streamsize t = std::streamsize(2);
+#endif /* ?REPLACE */
+#elif (P <= 128u)
+#define L char
+#ifdef REPLACE
+static const std::streamsize t = std::streamsize(4);
+#else /* !REPLACE */
+static const std::streamsize t = std::streamsize(3);
+#endif /* ?REPLACE */
+#elif (P <= 1000u)
+#define L short
+#ifdef REPLACE
+static const std::streamsize t = std::streamsize(4);
+#else /* !REPLACE */
+static const std::streamsize t = std::streamsize(3);
+#endif /* ?REPLACE */
+#elif (P <= 10000u)
+#define L short
+#ifdef REPLACE
+static const std::streamsize t = std::streamsize(5);
+#else /* !REPLACE */
+static const std::streamsize t = std::streamsize(4);
+#endif /* ?REPLACE */
+#elif (P <= 32768u)
+#define L short
+#ifdef REPLACE
+static const std::streamsize t = std::streamsize(6);
+#else /* !REPLACE */
+static const std::streamsize t = std::streamsize(5);
+#endif /* ?REPLACE */
+#else /* 32768 < P <= 100000 */
+#define L int
+#ifdef REPLACE
+static const std::streamsize t = std::streamsize(6);
+#else /* !REPLACE */
+static const std::streamsize t = std::streamsize(5);
 #endif /* ?REPLACE */
 #endif /* ?P */
 
@@ -87,7 +150,7 @@ static const unsigned W[P][P] =
 
 static struct pivot
 {
-  unsigned char r, c;
+  unsigned K r, c;
 } A[S][P], B[S][P];
 
 static inline bool operator<(const pivot &a, const pivot &b)
@@ -98,8 +161,8 @@ static inline bool operator<(const pivot &a, const pivot &b)
 static size_t min_cost = ~0ull;
 
 #ifdef REPLACE
-static signed char X[S][P][2u];
-static signed char Y[S][P][2u];
+static signed L X[S][P][2u];
+static signed L Y[S][P][2u];
 
 static inline int s1r1(const pivot &a, const pivot &b)
 {
@@ -122,8 +185,8 @@ static inline bool accept_perm(const pivot a[], const pivot b[])
   return true;
 }
 #else /* !REPLACE */
-static signed char X[S][P][2u][2u];
-static signed char Y[S][P][2u][2u];
+static signed L X[S][P][2u][2u];
+static signed L Y[S][P][2u][2u];
 #endif /* ?REPLACE */
 
 static size_t gen_comm()
@@ -222,8 +285,7 @@ static size_t find_perms(const unsigned l)
               std::cout << ',';
             std::cout << std::endl;
           }
-          std::cout << "};" << std::endl;
-          std::cout << cost << ": {" << std::endl;
+          std::cout << "};" << std::endl << cost << ": {" << std::endl;
           for (unsigned s = 0u; s < S; ++s) {
             std::cout << "  {";
             for (unsigned p = 0u; p < P; ++p) {
@@ -270,8 +332,7 @@ int main(int argc, char* argv[])
   (void)memcpy(A, T, sizeof(T));
 #ifdef V
   const size_t s = find_perms(0u);
-  std::cout << "#~strats=" << s << std::endl;
-  std::cout << "min_cost=" << min_cost << std::endl;
+  std::cout << "#~strats=" << s << std::endl << "min_cost=" << min_cost << std::endl;
 #else /* !V */
   if (!setjmp(jmp))
     (void)find_perms(0u);
