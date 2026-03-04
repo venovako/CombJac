@@ -7,6 +7,11 @@
 #include <iomanip>
 #include <iostream>
 
+#ifndef V
+#include <csetjmp>
+static jmp_buf jmp;
+#endif /* !V */
+
 #if !defined(N)
 #error N not defined
 #elif (N < 4u)
@@ -240,6 +245,9 @@ static size_t find_perms(const unsigned l)
           (void)memcpy(Y, X, sizeof(X));
           min_cost = cost;
         }
+#ifndef V
+        longjmp(jmp, 1);
+#endif /* !V */
 #ifdef REPLACE
       }
 #endif /* REPLACE */
@@ -260,8 +268,13 @@ int main(int argc, char* argv[])
     return EXIT_FAILURE;
   }
   (void)memcpy(A, T, sizeof(T));
+#ifdef V
   const size_t s = find_perms(0u);
   std::cout << "#~strats=" << s << std::endl;
   std::cout << "min_cost=" << min_cost << std::endl;
+#else /* !V */
+  if (!setjmp(jmp))
+    (void)find_perms(0u);
+#endif /* ?V */
   return EXIT_SUCCESS;
 }
