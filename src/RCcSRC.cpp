@@ -28,6 +28,20 @@ static const std::streamsize v = std::streamsize(2);
 #define P (N >> 1u)
 #endif /* ?P */
 
+#if (P <= 10u)
+#ifdef REPLACE
+static const std::streamsize t = std::streamsize(2);
+#else /* !REPLACE */
+static const std::streamsize t = std::streamsize(1);
+#endif /* ?REPLACE */
+#else /* P > 10 */
+#ifdef REPLACE
+static const std::streamsize t = std::streamsize(3);
+#else /* !REPLACE */
+static const std::streamsize t = std::streamsize(2);
+#endif /* ?REPLACE */
+#endif /* ?P */
+
 // # of parallel steps in a sweep
 #ifdef S
 #error S defined
@@ -118,7 +132,7 @@ static size_t gen_comm()
       for (unsigned l = 0u; l < P; ++l) {
         if (l == k)
           continue;
-        if ((A[i][k].r == A[j][l].r) || (A[i][k].r == A[j][l].c)) {
+        else if ((A[i][k].r == A[j][l].r) || (A[i][k].r == A[j][l].c)) {
           r = true;
           X[i][k][DST] = -int(l) - 1;
           break;
@@ -131,7 +145,7 @@ static size_t gen_comm()
       for (unsigned l = 0u; l < P; ++l) {
         if (l == k)
           continue;
-        if ((A[j][k].r == A[i][l].r) || (A[j][k].r == A[i][l].c)) {
+        else if ((A[j][k].r == A[i][l].r) || (A[j][k].r == A[i][l].c)) {
           X[i][k][SRC] = (r ? int(l) : (-int(l) - 1));
           break;
         }
@@ -209,9 +223,9 @@ static size_t find_perms(const unsigned l)
             std::cout << "  {";
             for (unsigned p = 0u; p < P; ++p) {
 #ifdef REPLACE
-              std::cout << '{' << std::setw(v+1) << int(X[s][p][DST]) << ',' << std::setw(v+1) << int(X[s][p][SRC]) << '}';
+              std::cout << '{' << std::setw(t) << int(X[s][p][DST]) << ',' << std::setw(t) << int(X[s][p][SRC]) << '}';
 #else /* !REPLACE */
-              std::cout << "{{" << std::setw(v) << int(X[s][p][R][DST]) << ',' << std::setw(v) << int(X[s][p][R][SRC]) << "},{" << std::setw(v) << int(X[s][p][C][DST]) << ',' << std::setw(v) << int(X[s][p][C][SRC]) << "}}";
+              std::cout << "{{" << std::setw(t) << int(X[s][p][R][DST]) << ',' << std::setw(t) << int(X[s][p][R][SRC]) << "},{" << std::setw(t) << int(X[s][p][C][DST]) << ',' << std::setw(t) << int(X[s][p][C][SRC]) << "}}";
 #endif /* ?REPLACE */
               if (p < (P - 1u))
                 std::cout << ',';

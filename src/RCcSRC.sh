@@ -1,7 +1,7 @@
 #!/bin/bash
 if [ $# -lt 2 ] || [ $# -gt 3 ]
 then
-	echo "$0 N CXX [ W ]"
+	echo "$0 ±N CXX [ W ]"
 	exit
 fi
 if [ $1 -lt 0 ]
@@ -27,9 +27,9 @@ fi
 rm -f RCcSRC.exe
 if [ $# -eq 3 ]
 then
-	$2 -O3 -DNDEBUG $R -DN=${N}u -DH="\"$T.hpp\"" -DT=$T -DV="\"$3\"" RCcSRC.cpp -o RCcSRC.exe
+	$2 -O3 $R -DN=${N}u -DH="\"$T.hpp\"" -DT=$T -DV="\"$3\"" RCcSRC.cpp -o RCcSRC.exe
 else
-	$2 -O3 -DNDEBUG $R -DN=${N}u -DH="\"$T.hpp\"" -DT=$T RCcSRC.cpp -o RCcSRC.exe
+	$2 -O3 $R -DN=${N}u -DH="\"$T.hpp\"" -DT=$T RCcSRC.cpp -o RCcSRC.exe
 fi
 unset N R T
 ./RCcSRC.exe
