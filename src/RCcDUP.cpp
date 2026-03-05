@@ -1,3 +1,4 @@
+// enlarge the strategy from N to M=2*N
 #include "defs.hpp"
 #include <cstdlib>
 #include <fstream>
