@@ -192,7 +192,7 @@ static inline bool accept_perm(const pivot a[], const pivot b[])
   return true;
 }
 #else /* !REPLACE */
-/* MPI_Isend + MPI_Irecv, with double buffering:
+/* MPI_Isendrecv, with double buffering:
    X[s][p][R/C][DST/SRC]:
    R/C: the left (R) or the right (C) block
    DST: send to DST
