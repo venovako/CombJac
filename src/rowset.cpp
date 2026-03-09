@@ -505,7 +505,7 @@ static bool print_asy()
     if (unsigned(ASYMPTOTE_FONTSIZE) != 12u)
       asy << "import fontsize;" << std::endl << "defaultpen(fontsize(" << ASYMPTOTE_FONTSIZE << "pt));" << std::endl;
     if (s < S)
-      asy << "texpreamble(\"\\usepackage[fixed]{fontawesome5}\");" << std::endl;
+      asy << "texpreamble(\"\\usepackage{amssymb}\");" << std::endl;
     asy << std::endl;
     asy << "size(" << size_pt << "pt);" << std::endl;
     asy << std::endl;
@@ -560,10 +560,10 @@ static bool print_asy()
         ldouble l_x = __builtin_fmal(one_n, q, one_2n);
         ldouble l_y = one - __builtin_fmal(one_n, p, one_2n);
         asy << std::endl;
-        asy << "label(\"\\faChessRook\",(" << l_x << ',' << l_y << "));" << std::endl;
+        asy << "label(\"$\\blacksquare$\",(" << l_x << ',' << l_y << "));" << std::endl;
         l_x = __builtin_fmal(one_n, p, one_2n);
         l_y = one - __builtin_fmal(one_n, q, one_2n);
-        asy << "label(\"\\faChessRook\",(" << l_x << ',' << l_y << "),lightgray);" << std::endl;
+        asy << "label(\"$\\blacksquare$\",(" << l_x << ',' << l_y << "),lightgray);" << std::endl;
       }
     }
     else {
