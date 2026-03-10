@@ -621,10 +621,10 @@ static bool print_asy()
   return true;
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
   if (argc != 1) {
-    std::cerr << argv[0] << std::endl;
+    std::cerr << *argv << std::endl;
     return EXIT_FAILURE;
   }
 

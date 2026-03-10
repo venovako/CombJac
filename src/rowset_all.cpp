@@ -1,13 +1,8 @@
 #include "common.hpp"
 
 static ullong strat, max_strat;
-static const char *prefix;
-static const char *sname;
-static const char *names;
-static const char *iname;
-static const char *namei;
 
-static void make_in_strat(const bool diagne)
+static void make_in_strat()
 {
   if (!memset(in_strat, 0, sizeof(in_strat)))
     exit(EXIT_FAILURE);
@@ -27,24 +22,12 @@ static void make_in_strat(const bool diagne)
   strat = 0ull;
 
   ushort i = ushort(0u);
-  if (diagne) {
-    // diagonals: (1,N); (2,N),(1,N-1); (3,N),(2,N-1),(1,N-2); ...
-    for (uchar r = uchar(0u); r < N_1; ++r) {
-      for (uchar l = uchar(0u); l <= r; ++l) {
-        in_strat[i][R] = r - l;
-        in_strat[i][C] = N_1 - l;
-        ++i;
-      }
-    }
-  }
-  else {
-    // row-cyclic
-    for (uchar r = uchar(0u); r < N_1; ++r) {
-      for (uchar c = uchar(r + 1u); c < N; ++c) {
-        in_strat[i][R] = r;
-        in_strat[i][C] = c;
-        ++i;
-      }
+  // row-cyclic
+  for (uchar r = uchar(0u); r < N_1; ++r) {
+    for (uchar c = uchar(r + 1u); c < N; ++c) {
+      in_strat[i][R] = r;
+      in_strat[i][C] = c;
+      ++i;
     }
   }
 
@@ -57,12 +40,12 @@ static void make_in_strat(const bool diagne)
 static void print_gv()
 {
   std::ostringstream gv_filename;
-  gv_filename << prefix << '_' << N << ".gv";
+  gv_filename << "rowset_" << N << ".gv";
   std::ofstream gv(gv_filename.str(), (std::ios::out | std::ios::trunc));
   if (!gv)
     exit(EXIT_FAILURE);
 
-  gv << "strict graph " << prefix << " {" << std::endl << "\tmargin=0" << std::endl << "\tsize=" << GRAPHVIZ_SIZE << std::endl << "\tnode [fontsize=" << GRAPHVIZ_FONTSIZE << ']' << std::endl << "\tedge [color=" << GRAPHVIZ_EDGECOLOR << ']' << std::endl << "\t{" << std::endl;
+  gv << "strict graph rowset {" << std::endl << "\tmargin=0" << std::endl << "\tsize=" << GRAPHVIZ_SIZE << std::endl << "\tnode [fontsize=" << GRAPHVIZ_FONTSIZE << ']' << std::endl << "\tedge [color=" << GRAPHVIZ_EDGECOLOR << ']' << std::endl << "\t{" << std::endl;
   for (ushort i = ushort(0u); i < E; ++i)
     gv << "\t\t" << (i + IXBASE) << " [label=\"" << (i + IXBASE) << "=(" << (in_strat[i][R] + IXBASE) << ',' << (in_strat[i][C] + IXBASE) << ")\"]" << std::endl;
   gv << "\t}" << std::endl;
@@ -76,13 +59,13 @@ static void print_gv()
   // use '-DGRAPHVIZ_PREFIX=""' if circo is in the PATH, or '-DGRAPHVIZ_PREFIX="graphviz_prefix/"' if it is not
 #ifdef GRAPHVIZ_PREFIX
   std::ostringstream circo_call;
-  circo_call << GRAPHVIZ_PREFIX << "circo -v -Tpdf -o" << prefix << '-' << N << ".pdf -x " << prefix << '_' << N << ".gv > " << prefix << '_' << N << ".log 2>&1";
+  circo_call << GRAPHVIZ_PREFIX << "circo -v -Tpdf -orowset-" << N << ".pdf -x rowset_" << N << ".gv > rowset_" << N << ".log 2>&1";
   if (system(circo_call.str().c_str()))
     exit(EXIT_FAILURE);
 #endif /* GRAPHVIZ_PREFIX */
 
   std::ostringstream txt_filename;
-  txt_filename << prefix << '_' << N << ".txt";
+  txt_filename << "rowset_" << N << ".txt";
   std::ofstream txt(txt_filename.str(), (std::ios::out | std::ios::trunc));
   if (!txt)
     exit(EXIT_FAILURE);
@@ -101,12 +84,12 @@ static void print_gv()
 static void print_hpp()
 {
   std::ostringstream hpp_filename;
-  hpp_filename << prefix << '_' << N << '-' << strat << ".hpp";
+  hpp_filename << "rowset_" << N << '-' << strat << ".hpp";
   std::ofstream hpp(hpp_filename.str(), (std::ios::out | std::ios::trunc));
   if (!hpp)
     exit(EXIT_FAILURE);
   
-  hpp << "unsigned char " << sname << std::setfill('0') << std::setw(3) << N << std::setfill(' ')
+  hpp << "unsigned char cRC" << std::setfill('0') << std::setw(3) << N << std::setfill(' ')
       << '[' << std::setw(3) << S << "][" << std::setw(3) << P << "][2] =" << std::endl
       << '{' << std::endl;
 
@@ -127,7 +110,7 @@ static void print_hpp()
 
   hpp << "};" << std::endl << std::endl;
 
-  hpp << "unsigned char " << names << std::setfill('0') << std::setw(3) << N << std::setfill(' ')
+  hpp << "unsigned char RCc" << std::setfill('0') << std::setw(3) << N << std::setfill(' ')
       << '[' << std::setw(3) << S << "][" << std::setw(3) << P << "][2] =" << std::endl
       << '{' << std::endl;
 
@@ -156,12 +139,12 @@ static void print_f90()
     return;
 
   std::ostringstream f90_filename;
-  f90_filename << prefix << '_' << N << '-' << strat << ".f90";
+  f90_filename << "rowset_" << N << '-' << strat << ".f90";
   std::ofstream f90(f90_filename.str(), (std::ios::out | std::ios::trunc));
   if (!f90)
     exit(EXIT_FAILURE);
 
-  f90 << "integer(kind=int8), parameter :: " << sname << std::setfill('0') << std::setw(3) << N << std::setfill(' ')
+  f90 << "integer(kind=int8), parameter :: cRC" << std::setfill('0') << std::setw(3) << N << std::setfill(' ')
       << "(2," << std::setw(3) << P << ',' << std::setw(3) << S << ") = reshape([&" << std::endl;
 
   ushort i = ushort(0u);
@@ -176,7 +159,7 @@ static void print_f90()
 
   f90 << "], [2," << std::setw(3) << P << ',' << std::setw(3) << S << "])" << std::endl << std::endl;
 
-  f90 << "integer(kind=int8), parameter :: " << names << std::setfill('0') << std::setw(3) << N << std::setfill(' ')
+  f90 << "integer(kind=int8), parameter :: RCc" << std::setfill('0') << std::setw(3) << N << std::setfill(' ')
       << "(2," << std::setw(3) << P << ',' << std::setw(3) << S << ") = reshape([&" << std::endl;
 
   i = E;
@@ -196,12 +179,12 @@ static void print_f90()
 static void print_idx()
 {
   std::ostringstream idx_filename;
-  idx_filename << prefix << '_' << N << '-' << strat << ".idx";
+  idx_filename << "rowset_" << N << '-' << strat << ".idx";
   std::ofstream idx(idx_filename.str(), (std::ios::out | std::ios::trunc));
   if (!idx)
     exit(EXIT_FAILURE);
 
-  idx << "unsigned char " << iname << std::setfill('0') << std::setw(3) << N << std::setfill(' ')
+  idx << "unsigned char iRC" << std::setfill('0') << std::setw(3) << N << std::setfill(' ')
       << '[' << std::setw(3) << S << "][" << std::setw(3) << P << "] =" << std::endl
       << '{' << std::endl;
 
@@ -222,7 +205,7 @@ static void print_idx()
 
   idx << "};" << std::endl << std::endl;
 
-  idx << "unsigned char " << namei << std::setfill('0') << std::setw(3) << N << std::setfill(' ')
+  idx << "unsigned char RCi" << std::setfill('0') << std::setw(3) << N << std::setfill(' ')
       << '[' << std::setw(3) << S << "][" << std::setw(3) << P << "] =" << std::endl
       << '{' << std::endl;
 
@@ -256,7 +239,7 @@ static void print_asy()
   ushort i = ushort(0u);
   for (uchar s = uchar(0u); s <= S; ++s) {
     std::ostringstream asy_filename;
-    asy_filename << prefix << '_' << N << '-' << strat << '_' << std::setfill('0') << std::setw(w) << (s + IXBASE) << std::setfill(' ') << ".asy";
+    asy_filename << "rowset_" << N << '-' << strat << '_' << std::setfill('0') << std::setw(w) << (s + IXBASE) << std::setfill(' ') << ".asy";
     std::ofstream asy(asy_filename.str(), (std::ios_base::out | std::ios_base::trunc));
     if (!asy)
       exit(EXIT_FAILURE);
@@ -350,7 +333,7 @@ static void print_asy()
     // use '-DASYMPTOTE_PREFIX=""' if asy is in the PATH, or '-DASYMPTOTE_PREFIX="asymptote_prefix/"' if it is not
 #ifdef ASYMPTOTE_PREFIX
     std::ostringstream asy_call;
-    asy_call << ASYMPTOTE_PREFIX << "asy -v -nobatchView -f pdf -tex pdflatex " << asy_filename.str() << " >> " << prefix << '_' << N << '-' << strat << ".log 2>&1";
+    asy_call << ASYMPTOTE_PREFIX << "asy -v -nobatchView -f pdf -tex pdflatex " << asy_filename.str() << " >> rowset_" << N << '-' << strat << ".log 2>&1";
     if (system(asy_call.str().c_str()))
       exit(EXIT_FAILURE);
 #endif /* ASYMPTOTE_PREFIX */
@@ -362,8 +345,8 @@ static void print_asy()
   std::ostringstream pdftk_call;
   pdftk_call << PDFTK_PREFIX << "pdftk";
   for (uchar s = uchar(0u); s <= S; ++s)
-    pdftk_call << " " << prefix << '_' << N << '-' << strat << '_' << std::setfill('0') << std::setw(w) << (s + IXBASE) << std::setfill(' ') << ".pdf";
-  pdftk_call << " cat output " << prefix << '_' << N << '-' << strat << ".pdf verbose dont_ask >> " << prefix << '_' << N << '-' << strat << ".log 2>&1";
+    pdftk_call << " rowset_" << N << '-' << strat << '_' << std::setfill('0') << std::setw(w) << (s + IXBASE) << std::setfill(' ') << ".pdf";
+  pdftk_call << " cat output rowset_" << N << '-' << strat << ".pdf verbose dont_ask >> rowset_" << N << '-' << strat << ".log 2>&1";
   if (system(pdftk_call.str().c_str()))
     exit(EXIT_FAILURE);
 #endif /* PDFTK_PREFIX */
@@ -456,30 +439,14 @@ static bool next_pivot()
   return false;
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
   if ((argc < 1) || (argc > 2)) {
-    std::cerr << argv[0] << " [max_strat]" << std::endl;
+    std::cerr << argv[0u] << " [max_strat]" << std::endl;
     return EXIT_FAILURE;
   }
-  const long long m = ((argc == 1) ? 0ll : atoll(argv[1]));
-  max_strat = ullong((m < 0ll) ? -(m + 1ll) : m);
-  if (m >= 0ll) {
-    prefix = "diagne";
-    sname = "cDG";
-    names = "DGc";
-    iname = "iDG";
-    namei = "DGi";
-    make_in_strat(true);
-  }
-  else {
-    prefix = "rowset";
-    sname = "cRC";
-    names = "RCc";
-    iname = "iRC";
-    namei = "RCi";
-    make_in_strat(false);
-  }
+  max_strat = ((argc == 1) ? 0ull : strtoull(argv[1u], (char**)NULL, 0));
+  make_in_strat();
   print_gv();
   return (next_pivot() ? EXIT_SUCCESS : EXIT_FAILURE);
 }
